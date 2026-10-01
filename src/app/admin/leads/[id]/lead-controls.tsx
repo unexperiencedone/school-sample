@@ -95,13 +95,15 @@ export function NoteForm({ id }: { id: string }) {
   return (
     <form
       key={key}
-      action={(fd) =>
+      onSubmit={(e) => {
+        e.preventDefault();
+        const fd = new FormData(e.currentTarget);
         start(async () => {
           const r = await noteLead(id, fd);
           report(r, "Note added");
           if (r.ok) setKey((k) => k + 1);
-        })
-      }
+        });
+      }}
       className="space-y-2"
     >
       <label htmlFor="note-body" className="sr-only">
@@ -133,13 +135,15 @@ export function ReminderForm({ id }: { id: string }) {
   return (
     <form
       key={key}
-      action={(fd) =>
+      onSubmit={(e) => {
+        e.preventDefault();
+        const fd = new FormData(e.currentTarget);
         start(async () => {
           const r = await remindLead(id, fd);
           report(r, "Reminder set");
           if (r.ok) setKey((k) => k + 1);
-        })
-      }
+        });
+      }}
       className="flex flex-wrap items-end gap-2"
     >
       <label className="min-w-40 flex-1 text-xs text-muted">

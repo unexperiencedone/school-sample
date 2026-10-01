@@ -124,6 +124,7 @@ export async function seedOutbox(db: PrismaClient) {
       related: { type: "instalment", id: i.id },
     });
     await stamp(ids, runAt);
+    await db.instalment.update({ where: { id: i.id }, data: { lastReminderAt: runAt } });
   }
 
   // One WhatsApp that bounced three times — the outbox shows the error and a Retry button

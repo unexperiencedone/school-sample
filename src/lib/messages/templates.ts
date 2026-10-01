@@ -14,6 +14,7 @@ export type TemplateKey =
   | "offer-letter"
   | "fee-invoice"
   | "payment-receipt"
+  | "fee-due-reminder"
   | "overdue-reminder"
   | "refund-update"
   | "staff-application-received"
@@ -204,6 +205,31 @@ export const TEMPLATES: Record<TemplateKey, { name: string; render: (d: Data) =>
         templateId: "DLT-PAY-0001",
         text: `${school.shortName}: payment of ${s(d.amount)} received. Receipt ${s(d.receipt)}.`,
         variables: { var1: s(d.amount), var2: s(d.receipt) },
+      },
+    }),
+  },
+  "fee-due-reminder": {
+    name: "Fee due soon",
+    render: (d) => ({
+      subject: `${s(d.label)} for ${s(d.studentName)} is due on ${s(d.dueDate)}`,
+      email: {
+        preview: `${s(d.amount)} is due on ${s(d.dueDate)}.`,
+        heading: "A reminder about the next instalment",
+        paragraphs: [
+          `Dear ${s(d.parentName)},`,
+          `The ${s(d.label).toLowerCase()} of ${s(d.studentName)}'s fees, ${s(d.amount)}, is due on ${s(d.dueDate)}. You can pay online by UPI, card or net banking in a couple of minutes. If you have already paid, thank you — please ignore this message.`,
+        ],
+        facts: [
+          ["Amount", s(d.amount)],
+          ["Due", s(d.dueDate)],
+        ],
+        cta: { label: "Pay now", href: `${siteUrl()}/portal/fees` },
+      },
+      whatsapp: { template: "fee_due_v1", variables: [s(d.studentName), s(d.amount), s(d.dueDate)] },
+      sms: {
+        templateId: "DLT-DUE-0002",
+        text: `${school.shortName}: ${s(d.amount)} for ${s(d.studentName)} is due on ${s(d.dueDate)}. Pay at ${siteUrl()}/portal`,
+        variables: { var1: s(d.amount), var2: s(d.dueDate) },
       },
     }),
   },

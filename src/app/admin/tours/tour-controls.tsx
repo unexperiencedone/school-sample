@@ -41,13 +41,15 @@ export function SlotCreator() {
   const today = formatDate(new Date(), "yyyy-MM-dd"); // the school's calendar day (IST), not UTC
   return (
     <form
-      action={(fd) =>
+      onSubmit={(e) => {
+        e.preventDefault();
+        const fd = new FormData(e.currentTarget);
         start(async () => {
           const r = await createSlotsAction(fd);
           if (r.ok) toast.success(r.message ?? "Created");
           else toast.error(r.error);
-        })
-      }
+        });
+      }}
       className="grid gap-3 text-sm sm:grid-cols-2"
     >
       <label className="text-xs text-muted">

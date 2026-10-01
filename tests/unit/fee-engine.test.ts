@@ -12,6 +12,7 @@ import {
   nextLateFee,
   outstanding,
   quoteRefund,
+  repriceForward,
   repriceInvoice,
   validatePlan,
   type InstalmentState,
@@ -497,6 +498,68 @@ describe("repricing", () => {
     expect(sum(r.instalments.map((i) => i.paidPaise)) + r.walletCreditPaise).toBe(80_000_000);
     expect(r.walletCreditPaise).toBe(5_000_000);
     expect(r.instalments[0]!.oldAmountPaise).toBe(old.instalments[0]!.amountPaise);
+  });
+});
+
+describe("forward repricing (fee revisions)", () => {
+  const asOf = utcDate(2026, 3, 1);
+  const price = (tuition: number) =>
+    computeInvoice({
+      structure: {
+        ...structure,
+        version: 2,
+        lines: structure.lines.map((l) => (l.head.code === "TUI" ? { ...l, amountPaise: tuition } : l)),
+      },
+      plan: plans.THREE,
+      concessions: [],
+      student: newStudent({ isNewAdmission: false }),
+      asOf,
+    });
+  const base = computeInvoice({
+    structure,
+    plan: plans.THREE,
+    concessions: [],
+    student: newStudent({ isNewAdmission: false }),
+    asOf,
+  });
+  const state = (paid: number[]) => ({
+    totalPaise: base.totalPaise,
+    instalments: base.instalments.map((i, k) => ({
+      seq: i.seq,
+      amountPaise: i.amountPaise,
+      principalPaidPaise: paid[k] ?? 0,
+    })),
+  });
+
+  it("never re-opens a settled instalment: the increase lands on what is still to pay", () => {
+    const up = price(66_000_000);
+    const r = repriceForward(state([base.instalments[0]!.amountPaise, 0, 0]), up);
+    expect(r.instalments[0]).toMatchObject({ locked: true, amountPaise: base.instalments[0]!.amountPaise });
+    expect(sum(r.instalments.map((i) => i.amountPaise))).toBe(up.totalPaise);
+    expect(r.instalments[1]!.amountPaise).toBeGreaterThan(base.instalments[1]!.amountPaise);
+    expect(r.walletCreditPaise).toBe(0);
+    // remaining instalments keep the plan's 30/30 proportions between themselves
+    expect(Math.abs(r.instalments[1]!.amountPaise - r.instalments[2]!.amountPaise)).toBeLessThanOrEqual(1);
+  });
+
+  it("keeps part-payments where they are and credits principal the revised invoice no longer needs", () => {
+    const down = price(10_000_000);
+    const paid1 = base.instalments[1]!.amountPaise - 1_000_000; // second instalment part-paid
+    const r = repriceForward(state([base.instalments[0]!.amountPaise, paid1, 0]), down);
+    expect(r.deltaPaise).toBeLessThan(0);
+    expect(sum(r.instalments.map((i) => i.amountPaise))).toBe(
+      Math.max(down.totalPaise, base.instalments[0]!.amountPaise),
+    );
+    const paidAfter = sum(r.instalments.map((i) => i.principalPaidPaise)) + r.walletCreditPaise;
+    expect(paidAfter).toBe(base.instalments[0]!.amountPaise + paid1); // nothing lost, nothing invented
+    expect(r.walletCreditPaise).toBeGreaterThan(0);
+  });
+
+  it("an unpaid invoice simply takes the new amounts", () => {
+    const up = price(66_000_000);
+    const r = repriceForward(state([0, 0, 0]), up);
+    expect(r.instalments.map((i) => i.amountPaise)).toEqual(up.instalments.map((i) => i.amountPaise));
+    expect(r.deltaPaise).toBe(up.totalPaise - base.totalPaise);
   });
 });
 

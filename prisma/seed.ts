@@ -3,9 +3,10 @@ import { seedAcademics, seedUsers } from "./seed/core";
 import { seedFees } from "./seed/fees";
 import { seedVacancies } from "./seed/careers";
 import { seedSections, seedStaff, seedStudents, seedTimetable } from "./seed/people";
-import { seedFinance, seedRefundsAndImprest } from "./seed/finance";
+import { SEED_TODAY, seedFinance, seedRefundsAndImprest } from "./seed/finance";
 import { seedApplications, seedLeads } from "./seed/admissions";
 import { seedOutbox } from "./seed/outbox";
+import { runLateFees } from "../src/lib/services/jobs";
 import { seedContent } from "./seed/content";
 import { createRng } from "./seed/rng";
 
@@ -63,7 +64,9 @@ export async function seed(client: PrismaClient = db, log: (m: string) => void =
   const { payments } = await seedFinance(client, rng, academics, students, users);
   step(`invoices & ${payments} payments`);
   await seedRefundsAndImprest(client, rng, academics, students, users);
-  step("refunds, imprest");
+  // The real nightly job, as of "today": late fees, cancellation flags and lapsed advance rebates
+  const nightly = await runLateFees(SEED_TODAY);
+  step(`refunds, imprest, nightly job (${nightly.forfeited} rebates forfeited)`);
   const leads = await seedLeads(client, rng, users, academics.classes);
   step(`${leads.length} leads, tours`);
   const apps = await seedApplications(client, rng, academics, academics.classes, users, leads);

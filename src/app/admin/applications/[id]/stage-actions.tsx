@@ -219,13 +219,15 @@ export function AssessmentForm({
   const [pending, start] = useTransition();
   return (
     <form
-      action={(fd) =>
+      onSubmit={(e) => {
+        e.preventDefault();
+        const fd = new FormData(e.currentTarget);
         start(async () => {
           const r = await saveAssessmentAction(id, fd);
           if (r.ok) toast.success(r.message ?? "Saved");
           else toast.error(r.error);
-        })
-      }
+        });
+      }}
       className="grid gap-3 sm:grid-cols-4"
     >
       <label className="text-xs text-muted sm:col-span-2">

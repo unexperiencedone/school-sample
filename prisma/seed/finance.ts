@@ -257,14 +257,34 @@ export async function seedFinance(
   if (waiveInv) await db.invoice.update({ where: { id: waiveInv.id }, data: { status: "WAIVED" } });
 
   // Pending concession requests (for the Principal's approval queue)
-  for (const s of pendingCandidates) {
-    await db.studentConcession.create({
+  const PENDING_REASONS = [
+    "Change in family circumstances after a parent's job loss (sample request)",
+    "Single-parent household; income documents verified by Accounts (sample request)",
+    "Medical expenses in the family this year; supporting letter on file (sample request)",
+  ];
+  for (const [k, s] of pendingCandidates.entries()) {
+    const at = new Date(SEED_TODAY.getTime() - (k * 3 + 2) * day + 11 * 3600_000);
+    const reason = PENDING_REASONS[k % PENDING_REASONS.length]!;
+    const sc = await db.studentConcession.create({
       data: {
         studentId: s.id,
         concessionId: byCode["BURSARY"]!,
         yearId: years.curr.id,
         status: "REQUESTED",
-        reason: "Change in family circumstances (sample request)",
+        reason,
+        createdAt: at,
+      },
+    });
+    // The request trail Accounts would leave, so the Principal's queue shows who asked (maker–checker)
+    await db.auditLog.create({
+      data: {
+        actorId: users.ACCOUNTS,
+        actorRole: "ACCOUNTS",
+        action: "concession.request",
+        entity: "StudentConcession",
+        entityId: sc.id,
+        reason,
+        createdAt: at,
       },
     });
   }
@@ -297,6 +317,7 @@ export async function seedRefundsAndImprest(
         providerRefundId: "mock_rfnd_seed_1",
         requestedById: users.ACCOUNTS,
         approvedById: users.PRINCIPAL,
+        createdAt: utc(2026, 5, 28),
         decidedAt: utc(2026, 6, 2),
         processedAt: utc(2026, 6, 3),
         policy: { pupil: "NEW", rule: "beforeStartBp 100%" },
@@ -317,6 +338,7 @@ export async function seedRefundsAndImprest(
         idempotencyKey: `seed-refund-${b.id}`,
         requestedById: users.ACCOUNTS,
         approvedById: users.PRINCIPAL,
+        createdAt: utc(2026, 9, 23),
         decidedAt: utc(2026, 9, 25),
       },
     });
@@ -327,6 +349,7 @@ export async function seedRefundsAndImprest(
         amountPaise: 1_200_000,
         reason: "Activity trip cancelled (sample)",
         status: "REQUESTED",
+        createdAt: utc(2026, 9, 28),
         idempotencyKey: `seed-refund-${c.id}`,
         requestedById: users.ACCOUNTS,
       },

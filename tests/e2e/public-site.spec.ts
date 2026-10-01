@@ -28,6 +28,8 @@ const ROUTES = [
 ];
 
 test("every public route renders with a single h1 and no console errors", async ({ page }) => {
+  // Visits ~20 routes; under `next dev` each compiles on first visit, so allow more than the per-test default
+  test.setTimeout(300_000);
   const errors: string[] = [];
   page.on("pageerror", (e) => errors.push(e.message));
   for (const path of ROUTES) {
