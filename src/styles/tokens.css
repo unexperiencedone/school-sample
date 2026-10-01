@@ -1,0 +1,112 @@
+/*
+ * Aurelia Hall design tokens. Documented in docs/DESIGN_SYSTEM.md.
+ * Raw palette → semantic roles. Components use semantic roles only.
+ */
+:root {
+  /* Damson (brand 1) — deep plum */
+  --damson-950: #1c0b1a;
+  --damson-900: #2a1227;
+  --damson-800: #3d1d38;
+  --damson-700: #52284b;
+  --damson-600: #6b3a62;
+  --damson-300: #c9a9c1;
+  --damson-100: #efe3ec;
+  --damson-50: #f8f1f6;
+
+  /* Kiln (brand 2) — fired terracotta */
+  --kiln-800: #6f2f1b;
+  --kiln-700: #8f3f26;
+  --kiln-600: #b4583a;
+  --kiln-400: #d98b6c;
+  --kiln-100: #f6e2d9;
+
+  /* Marigold (accent) */
+  --marigold-700: #9a6408;
+  --marigold-600: #c88a17;
+  --marigold-500: #e3a72f;
+  --marigold-300: #f1cf82;
+  --marigold-100: #fbefd2;
+
+  /* Warm neutrals */
+  --paper: #fbf7f0;
+  --cream: #f4ece0;
+  --sand: #e7ddd0;
+  --stone: #b5a89c;
+  --slate: #66555f;
+  --ink: #231a21;
+  --white: #ffffff;
+
+  /* Status */
+  --green-700: #2f6b47;
+  --green-100: #dcefe2;
+  --amber-700: #8a5a00;
+  --amber-100: #fbecc8;
+  --red-700: #a3302a;
+  --red-100: #f8dcd9;
+  --blue-700: #2d5a86;
+  --blue-100: #dde9f5;
+
+  /* Semantic roles */
+  --bg: var(--paper);
+  --bg-elevated: var(--white);
+  --bg-sunken: var(--cream);
+  --fg: var(--ink);
+  --fg-muted: var(--slate);
+  --line: var(--sand);
+  --line-strong: var(--stone);
+  --primary: var(--damson-800);
+  --primary-hover: var(--damson-700);
+  --primary-fg: var(--paper);
+  --secondary: var(--kiln-700);
+  --secondary-fg: var(--paper);
+  --accent: var(--marigold-500);
+  --accent-fg: var(--damson-950);
+  --focus: var(--marigold-600);
+  --success: var(--green-700);
+  --success-bg: var(--green-100);
+  --warning: var(--amber-700);
+  --warning-bg: var(--amber-100);
+  --danger: var(--red-700);
+  --danger-bg: var(--red-100);
+  --info: var(--blue-700);
+  --info-bg: var(--blue-100);
+
+  /* Shape & rhythm */
+  --radius-sm: 4px;
+  --radius: 8px;
+  --radius-lg: 14px;
+  --radius-arch: 999px 999px 0 0;
+  --shadow-soft: 0 1px 2px rgb(35 26 33 / 0.05), 0 8px 24px -12px rgb(35 26 33 / 0.18);
+  --shadow-lift: 0 2px 4px rgb(35 26 33 / 0.06), 0 22px 48px -20px rgb(35 26 33 / 0.32);
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --dur-fast: 160ms;
+  --dur: 320ms;
+  --dur-slow: 700ms;
+}
+
+/* CRM dark mode (opt-in via data-theme on the admin shell). Same roles, different values. */
+[data-theme="dark"] {
+  --bg: #17111a;
+  --bg-elevated: #211923;
+  --bg-sunken: #120d14;
+  --fg: #f2ebef;
+  --fg-muted: #b4a6b0;
+  --line: #352a37;
+  --line-strong: #4b3d4d;
+  --primary: #d8b3ce;
+  --primary-hover: #e8cde0;
+  --primary-fg: #1c0b1a;
+  --secondary: #e29a7d;
+  --secondary-fg: #1c0b1a;
+  --accent: #f1cf82;
+  --accent-fg: #1c0b1a;
+  --success: #8fd1a7;
+  --success-bg: #1d3326;
+  --warning: #f1cf82;
+  --warning-bg: #3a2d10;
+  --danger: #f2a39c;
+  --danger-bg: #3d1a18;
+  --info: #a8c8ea;
+  --info-bg: #1a2a3b;
+  color-scheme: dark;
+}
