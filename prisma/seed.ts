@@ -2,10 +2,15 @@ import { PrismaClient } from "@prisma/client";
 import { seedAcademics, seedUsers } from "./seed/core";
 import { seedFees } from "./seed/fees";
 import { seedVacancies } from "./seed/careers";
+import { seedSections, seedStaff, seedStudents, seedTimetable } from "./seed/people";
+import { seedFinance, seedRefundsAndImprest } from "./seed/finance";
+import { seedApplications, seedLeads } from "./seed/admissions";
+import { seedContent } from "./seed/content";
+import { createRng } from "./seed/rng";
 
 const db = new PrismaClient();
 
-/** Wipes every table (demo data only) then rebuilds the sample school. */
+/** Wipes every table (demo data only). */
 export async function resetDatabase(client: PrismaClient = db) {
   const tables = await client.$queryRaw<
     { tablename: string }[]
@@ -16,19 +21,56 @@ export async function resetDatabase(client: PrismaClient = db) {
     );
 }
 
-export async function seed(client: PrismaClient = db) {
-  const started = Date.now();
+/**
+ * Builds the fictional school end to end. Deterministic (seeded PRNG) and anchored on the 2026-27 academic year.
+ * Reuses the real services (invoices, payments, admissions state machine) so seeded data behaves like real data.
+ */
+export async function seed(client: PrismaClient = db, log: (m: string) => void = console.log) {
+  const t0 = Date.now();
+  const step = (label: string) => log(`  ${label.padEnd(34)} ${((Date.now() - t0) / 1000).toFixed(1)}s`);
+  const rng = createRng(20260401);
   await resetDatabase(client);
   const users = await seedUsers(client);
   const academics = await seedAcademics(client);
+  step("users, years, classes, houses");
   await seedFees(client, academics, users.ACCOUNTS);
-  await seedVacancies(client);
-  console.log(
-    `Seeded ${Object.keys(users).length} demo users, ${academics.classes.length} classes in ${((Date.now() - started) / 1000).toFixed(1)}s`,
+  step("fee heads, structures, plans");
+  const staff = await seedStaff(client, users, academics.subjects);
+  const sections = await seedSections(client, academics, academics.classes, staff);
+  await seedTimetable(client, rng, academics.curr.id, academics.subjects, staff);
+  step("staff, sections, timetable");
+  const { students } = await seedStudents(
+    client,
+    rng,
+    academics,
+    academics.classes,
+    academics.houses,
+    sections,
+    users,
   );
+  // Admission numbers issued by the app must never collide with seeded ones.
+  for (const y of [academics.curr, academics.next])
+    await client.receiptSequence.upsert({
+      where: { financialYear: `ADM:${y.name}` },
+      create: { financialYear: `ADM:${y.name}`, lastSeq: 1000 },
+      update: { lastSeq: 1000 },
+    });
+  step(`${students.length} students & guardians`);
+  await seedContent(client, users);
+  await seedVacancies(client);
+  step("events, announcements, vacancies");
+  const { payments } = await seedFinance(client, rng, academics, students, users);
+  step(`invoices & ${payments} payments`);
+  await seedRefundsAndImprest(client, rng, academics, students, users);
+  step("refunds, imprest");
+  const leads = await seedLeads(client, rng, users, academics.classes);
+  step(`${leads.length} leads, tours`);
+  const apps = await seedApplications(client, rng, academics, academics.classes, users, leads);
+  step(`${apps} applications`);
+  log(`Seeded the sample school in ${((Date.now() - t0) / 1000).toFixed(1)}s`);
 }
 
-if (require.main === module || process.argv[1]?.endsWith("seed.ts")) {
+if (process.argv[1]?.endsWith("seed.ts")) {
   seed()
     .catch((e) => {
       console.error(e);

@@ -271,6 +271,7 @@ enum Gender {
 }
 
 enum StudentStatus {
+  PROSPECTIVE // offer made, place not yet confirmed
   ACTIVE
   WITHDRAWN
   TRANSFERRED
@@ -568,6 +569,10 @@ model Application {
   offerIssuedAt      DateTime?
   decisionAt         DateTime?
   waitlistPosition   Int?
+  scholarshipInterest Boolean         @default(false)
+  declarationAt      DateTime?
+  offerExpiresAt     DateTime?
+  decisionMessage    String?
   utm                Json?
   createdAt          DateTime         @default(now())
   updatedAt          DateTime         @updatedAt

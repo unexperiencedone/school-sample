@@ -1,0 +1,10 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "paths": {
+      "@/*": ["./src/*"],
+      "@content/*": ["./content/*"],
+      "server-only": ["./prisma/seed/server-only-shim.ts"]
+    }
+  }
+}

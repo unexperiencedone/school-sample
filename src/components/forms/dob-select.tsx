@@ -1,6 +1,6 @@
 "use client";
 
-import type { UseFormRegister } from "react-hook-form";
+import type { FieldValues, Path, UseFormRegister } from "react-hook-form";
 import { Select } from "@/components/ui/input";
 
 const MONTHS = [
@@ -19,13 +19,12 @@ const MONTHS = [
 ];
 
 /** Day / month / year selects with an age-appropriate year range (children aged 2–18). */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export function DobSelect({
+export function DobSelect<T extends FieldValues>({
   register,
   idPrefix,
   error,
 }: {
-  register: UseFormRegister<any>;
+  register: UseFormRegister<T>;
   idPrefix: string;
   error?: string;
 }) {
@@ -35,7 +34,12 @@ export function DobSelect({
     <fieldset aria-describedby={error ? `${idPrefix}-dob-error` : undefined}>
       <legend className="mb-1.5 text-sm font-medium text-fg">Child&apos;s date of birth</legend>
       <div className="grid grid-cols-[1fr_1.6fr_1.2fr] gap-2">
-        <Select id={`${idPrefix}-dobDay`} aria-label="Day" aria-invalid={!!error} {...register("dobDay")}>
+        <Select
+          id={`${idPrefix}-dobDay`}
+          aria-label="Day"
+          aria-invalid={!!error}
+          {...register("dobDay" as Path<T>)}
+        >
           <option value="">DD</option>
           {Array.from({ length: 31 }, (_, i) => (
             <option key={i} value={String(i + 1)}>
@@ -47,7 +51,7 @@ export function DobSelect({
           id={`${idPrefix}-dobMonth`}
           aria-label="Month"
           aria-invalid={!!error}
-          {...register("dobMonth")}
+          {...register("dobMonth" as Path<T>)}
         >
           <option value="">Month</option>
           {MONTHS.map((m, i) => (
@@ -56,7 +60,12 @@ export function DobSelect({
             </option>
           ))}
         </Select>
-        <Select id={`${idPrefix}-dobYear`} aria-label="Year" aria-invalid={!!error} {...register("dobYear")}>
+        <Select
+          id={`${idPrefix}-dobYear`}
+          aria-label="Year"
+          aria-invalid={!!error}
+          {...register("dobYear" as Path<T>)}
+        >
           <option value="">YYYY</option>
           {years.map((y) => (
             <option key={y} value={String(y)}>
