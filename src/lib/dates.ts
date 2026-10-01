@@ -41,3 +41,32 @@ export function ageOn(dob: Date, on: Date): number {
 export function utcDate(y: number, m: number, d: number): Date {
   return new Date(Date.UTC(y, m - 1, d));
 }
+
+function istParts(d: Date) {
+  const t = new TZDate(d.getTime(), SCHOOL_TZ);
+  return { y: t.getFullYear(), m: t.getMonth(), d: t.getDate(), dow: t.getDay() };
+}
+
+/** The instant at which the IST calendar day containing `d` (shifted by `offsetDays`) begins. */
+export function istDayStart(d: Date, offsetDays = 0): Date {
+  const p = istParts(d);
+  return new Date(new TZDate(p.y, p.m, p.d + offsetDays, SCHOOL_TZ).getTime());
+}
+
+/** The IST calendar date of `d` as UTC midnight — the storage convention for date-only columns such as due dates. */
+export function istDateOnly(d: Date, offsetDays = 0): Date {
+  const p = istParts(d);
+  return new Date(Date.UTC(p.y, p.m, p.d + offsetDays));
+}
+
+/** The instant at which the IST month containing `d` (shifted by `offsetMonths`) begins. */
+export function istMonthStart(d: Date, offsetMonths = 0): Date {
+  const p = istParts(d);
+  return new Date(new TZDate(p.y, p.m + offsetMonths, 1, SCHOOL_TZ).getTime());
+}
+
+/** ISO weekday in IST: 1 = Monday … 7 = Sunday. */
+export function istWeekday(d: Date): number {
+  const dow = istParts(d).dow;
+  return dow === 0 ? 7 : dow;
+}

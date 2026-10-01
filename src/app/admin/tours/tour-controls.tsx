@@ -4,6 +4,7 @@ import { useTransition } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { bookingStatusAction, createSlotsAction } from "./actions";
+import { formatDate } from "@/lib/dates";
 
 export function BookingButtons({ id, status }: { id: string; status: string }) {
   const [pending, start] = useTransition();
@@ -37,7 +38,7 @@ export function BookingButtons({ id, status }: { id: string; status: string }) {
 
 export function SlotCreator() {
   const [pending, start] = useTransition();
-  const today = new Date().toISOString().slice(0, 10);
+  const today = formatDate(new Date(), "yyyy-MM-dd"); // the school's calendar day (IST), not UTC
   return (
     <form
       action={(fd) =>

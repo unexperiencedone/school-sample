@@ -13,6 +13,7 @@ import {
   setLeadStatus,
   type ActionResult,
 } from "../actions";
+import { formatDate } from "@/lib/dates";
 
 function report(r: ActionResult, ok = "Saved"): void {
   if (r.ok) toast.success(r.message ?? ok);
@@ -128,7 +129,7 @@ export function NoteForm({ id }: { id: string }) {
 export function ReminderForm({ id }: { id: string }) {
   const [pending, start] = useTransition();
   const [key, setKey] = useState(0);
-  const tomorrow = new Date(Date.now() + 86400_000).toISOString().slice(0, 10);
+  const tomorrow = formatDate(new Date(Date.now() + 86400_000), "yyyy-MM-dd"); // IST calendar day
   return (
     <form
       key={key}

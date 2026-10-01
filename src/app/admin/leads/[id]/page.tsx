@@ -5,7 +5,13 @@ import { requireStaff } from "@/lib/auth/session";
 import { can } from "@/lib/rbac";
 import { db } from "@/lib/db";
 import { assignableStaff } from "@/lib/services/leads-admin";
-import { findDuplicates, LEAD_STATUS_FLOW, LEAD_STATUS_LABEL, leadRef } from "@/lib/services/leads";
+import {
+  findDuplicates,
+  LEAD_STATUS_FLOW,
+  LEAD_STATUS_LABEL,
+  leadRef,
+  sourceLabel,
+} from "@/lib/services/leads";
 import { PageHeader } from "@/components/crm/page-header";
 import { LeadStatusBadge, StageBadge } from "@/components/crm/badges";
 import { Card, CardBody, CardHeader, CardTitle } from "@/components/ui/card";
@@ -18,6 +24,7 @@ import {
   ReminderForm,
   StatusControl,
 } from "./lead-controls";
+import { BOARDING_OPTIONS } from "@/lib/schemas/common";
 
 export const metadata = { title: "Lead" };
 
@@ -47,7 +54,7 @@ export default async function LeadDetail({ params }: { params: Promise<{ id: str
   return (
     <>
       <PageHeader
-        eyebrow={`Lead ${leadRef(lead)} · ${lead.type === "TOUR" ? "Tour booking" : "Enquiry"} via ${lead.source}`}
+        eyebrow={`Lead ${leadRef(lead)} · ${lead.type === "TOUR" ? "Tour booking" : "Enquiry"} via ${sourceLabel(lead.source)}`}
         title={lead.parentName}
         description={
           <>
@@ -128,8 +135,11 @@ export default async function LeadDetail({ params }: { params: Promise<{ id: str
                       : "—",
                   ],
                   ["Class", lead.classApplying],
-                  ["Boarding", lead.preferredBoarding ?? "—"],
-                  ["Source", lead.source],
+                  [
+                    "Boarding",
+                    BOARDING_OPTIONS.find((b) => b.value === lead.preferredBoarding)?.label ?? "—",
+                  ],
+                  ["Source", sourceLabel(lead.source)],
                   [
                     "UTM",
                     [lead.utmSource, lead.utmMedium, lead.utmCampaign].filter(Boolean).join(" / ") || "—",
@@ -242,7 +252,7 @@ export default async function LeadDetail({ params }: { params: Promise<{ id: str
                     <Link href={`/admin/leads/${d.id}`} className="min-w-0 underline">
                       <span className="block truncate">{d.parentName}</span>
                       <span className="block text-xs text-muted">
-                        {formatDate(d.createdAt)} · {d.source}
+                        {formatDate(d.createdAt)} · {sourceLabel(d.source)}
                       </span>
                     </Link>
                     <LeadStatusBadge status={d.status} />

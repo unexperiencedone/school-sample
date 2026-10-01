@@ -9,7 +9,7 @@ export const badgeVariants = cva(
       tone: {
         neutral: "bg-sunken text-muted ring-1 ring-line",
         primary: "bg-damson-100 text-damson-800 dark:bg-damson-900 dark:text-damson-100",
-        accent: "bg-marigold-100 text-marigold-700",
+        accent: "bg-marigold-100 text-marigold-800 dark:bg-warning-bg dark:text-marigold-300",
         success: "bg-success-bg text-success",
         warning: "bg-warning-bg text-warning",
         danger: "bg-danger-bg text-danger",

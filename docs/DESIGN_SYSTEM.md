@@ -19,13 +19,14 @@ Aurelia Hall is a fictional school; its identity is original and deliberately un
 | Brand 2        | `--kiln-700`        | `#8f3f26`             | Eyebrows, small accents, links in body copy       |
 | Accent         | `--marigold-500`    | `#e3a72f`             | CTAs on dark, focus ring base, bullets, rules     |
 | Accent text    | `--marigold-700`    | `#9a6408`             | Gold text on light backgrounds (≥ 4.5:1 on paper) |
+| Accent ink     | `--marigold-800`    | `#7a4f06`             | Gold text on marigold-100 tints (6.2:1)           |
 | Paper          | `--paper`           | `#fbf7f0`             | Page background                                   |
 | Cream / sand   | `--cream`, `--sand` | `#f4ece0`, `#e7ddd0`  | Sunken surfaces, rules                            |
 | Ink / slate    | `--ink`, `--slate`  | `#231a21`, `#66555f`  | Body text, muted text (6.5:1 on paper)            |
 
 Components use **semantic roles** (`--bg`, `--fg`, `--fg-muted`, `--primary`, `--accent`, `--line`, `--success` …), exposed as Tailwind colours (`bg-bg`, `text-muted`, `border-line` …). The CRM's dark mode redefines the same roles under `[data-theme="dark"]`, so one component library serves both.
 
-Contrast rules learned the hard way (axe-verified): marigold-500/600 are for fills and decoration only; use `text-marigold-700` for gold text on light backgrounds and `text-marigold-300` on damson.
+Contrast rules learned the hard way (axe-verified): marigold-500/600 are for fills and decoration only; use `text-marigold-700` for gold text on paper or white, `text-marigold-800` on marigold-100 tints (badges, callouts — 700 only reaches 4.38:1 there), and `text-marigold-300` on damson.
 
 ## Type
 
@@ -80,6 +81,31 @@ Scale (`globals.css`): `.t-display` (clamp 2.6→5.4rem), `.t-h1`, `.t-h2`, `.t-
 - Home first-load JS ≈ 125 kB; dialogs, forms and the 360° viewer are code-split.
 - LCP image is a single art-directed `<picture>` (phones get the portrait crop only), `fetchpriority="high"`.
 - Lighthouse (mobile, local production build): home 92 / 100 / 100 / 100, About › Welcome 94 / 100 / 100 / 100 (perf / a11y / best practices / SEO).
+
+## Charts (CRM dashboard)
+
+Components live in `src/components/charts` (`ChartCard`, `BarList`, `ColumnChart`, `SeatMeters`, `StatTile`, `Meter`).
+
+- **Form first.** Headline numbers are stat tiles (sans, proportional figures, delta with an arrow icon and words).
+  Ranked categories are horizontal bars. Change over time uses columns. Capacity uses stacked meters.
+- **Colour by job.**
+  - **Categorical:** `--viz-1` damson `#86407a` and `--viz-2` marigold `#c9850c` (dark mode: `#a95b9b` and `#c08010`).
+  - **Ordinal** (application stages, darker = further along): `--viz-ord-1…7`, a single damson hue. In dark mode the anchor flips, so early stages sit nearest the surface.
+  - **Status colours** keep their own tokens and always come with an icon and a label.
+- **Validated, not eyeballed.**
+  - Categorical slots pass the lightness band, the chroma floor (≥ 0.10), colour-blind separation (deutan/protan ΔE ≈ 27 light, 19.5 dark), the normal-vision floor and 3:1 contrast against the card surface (`#ffffff` light, `#211923` dark).
+  - The ordinal ramp is monotone, with ≥ 0.06 ΔL per step and a light end ≥ 2:1.
+- **Marks.**
+  - Bars ≤ 24px thick, square at the baseline with a 4px rounded data end.
+  - Hairline gridlines and a solid baseline.
+  - A 2px surface gap between stacked segments.
+  - One direct label (the peak); every other value is in the tooltip and the table.
+- **Text never wears series colour.** Values, labels and legends use ink tokens; swatches carry identity.
+- **Interaction.**
+  - Each mark is a hover/focus target larger than the mark itself, with a tooltip.
+  - Each card has a Chart/Table toggle (`aria-pressed`).
+  - Phones drop every other axis label on dense time axes.
+- **No dual axes.**
 
 ## CRM density
 

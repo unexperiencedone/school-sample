@@ -35,6 +35,9 @@ export default async function ApplicationsList({
       ? { stage: sp.stage as ApplicationStage }
       : { stage: { not: "DRAFT" } }),
     ...(sp.class ? { classId: sp.class } : {}),
+    ...(sp.docs === "pending"
+      ? { documents: { some: { status: "PENDING" as const, fileKey: { not: null } } } }
+      : {}),
     ...(sp.boarding ? { boardingType: sp.boarding as "FULL" | "FLEXI" | "DAY" } : {}),
     ...(sp.q
       ? {
@@ -84,6 +87,12 @@ export default async function ApplicationsList({
               { value: "FLEXI", label: "Flexi" },
               { value: "DAY", label: "Day" },
             ],
+          },
+          {
+            type: "select",
+            name: "docs",
+            label: "Documents",
+            options: [{ value: "pending", label: "Awaiting verification" }],
           },
         ]}
       />

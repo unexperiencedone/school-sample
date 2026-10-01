@@ -22,7 +22,10 @@ const swatches: [string, string[]][] = [
     ],
   ],
   ["Kiln (brand 2)", ["kiln-800", "kiln-700", "kiln-600", "kiln-400", "kiln-100"]],
-  ["Marigold (accent)", ["marigold-700", "marigold-600", "marigold-500", "marigold-300", "marigold-100"]],
+  [
+    "Marigold (accent)",
+    ["marigold-800", "marigold-700", "marigold-600", "marigold-500", "marigold-300", "marigold-100"],
+  ],
   ["Neutrals", ["ink", "slate", "stone", "sand", "cream", "paper"]],
 ];
 
@@ -31,7 +34,7 @@ export default function DesignPage() {
   return (
     <main id="main" className="container-site py-16">
       <p className="t-eyebrow">Aurelia Hall</p>
-      <h1 className="t-display text-primary mt-3">Design system</h1>
+      <h1 className="t-display mt-3 text-primary">Design system</h1>
       <p className="t-lead mt-4 max-w-2xl">
         Warm, scholarly and calm. An arched doorway and a rising sun; damson, kiln and marigold on paper.
       </p>
@@ -41,11 +44,11 @@ export default function DesignPage() {
           <h2 id="logo" className="t-h2">
             Logo
           </h2>
-          <div className="border-line bg-elevated text-primary mt-6 flex flex-wrap items-center gap-8 rounded-lg border p-8">
+          <div className="mt-6 flex flex-wrap items-center gap-8 rounded-lg border border-line bg-elevated p-8 text-primary">
             <Logo />
             <LogoMark className="h-16" />
           </div>
-          <div className="bg-damson-900 text-paper mt-4 flex items-center gap-8 rounded-lg p-8">
+          <div className="mt-4 flex items-center gap-8 rounded-lg bg-damson-900 p-8 text-paper">
             <Logo />
           </div>
         </div>
@@ -74,8 +77,8 @@ export default function DesignPage() {
               <div className="flex flex-wrap gap-2">
                 {names.map((n) => (
                   <div key={n} className="w-28">
-                    <div className="ring-line h-16 rounded-md ring-1" style={{ background: `var(--${n})` }} />
-                    <p className="text-muted mt-1 font-mono text-xs">{n}</p>
+                    <div className="h-16 rounded-md ring-1 ring-line" style={{ background: `var(--${n})` }} />
+                    <p className="mt-1 font-mono text-xs text-muted">{n}</p>
                   </div>
                 ))}
               </div>
@@ -106,11 +109,11 @@ export default function DesignPage() {
             ))}
           </div>
           <div className="mt-8 grid grid-cols-3 gap-3">
-            <div className="arch from-kiln-400 to-kiln-700 aspect-[3/4] bg-gradient-to-b" />
-            <div className="arch from-marigold-300 to-marigold-600 aspect-[3/4] bg-gradient-to-b" />
-            <div className="arch from-damson-600 to-damson-900 aspect-[3/4] bg-gradient-to-b" />
+            <div className="arch aspect-[3/4] bg-gradient-to-b from-kiln-400 to-kiln-700" />
+            <div className="arch aspect-[3/4] bg-gradient-to-b from-marigold-300 to-marigold-600" />
+            <div className="arch aspect-[3/4] bg-gradient-to-b from-damson-600 to-damson-900" />
           </div>
-          <p className="text-muted mt-2 text-sm">The arch mask is the recurring image shape.</p>
+          <p className="mt-2 text-sm text-muted">The arch mask is the recurring image shape.</p>
         </div>
         <div className="space-y-4">
           <h2 className="t-h2">Form fields</h2>

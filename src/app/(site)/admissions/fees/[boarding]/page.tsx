@@ -112,7 +112,7 @@ export default async function FeesPage({ params, searchParams }: Props) {
       </PageHero>
 
       <section className="container-site py-12">
-        <p className="mb-8 rounded-md border border-marigold-300 bg-marigold-100/50 px-4 py-3 text-sm text-marigold-700">
+        <p className="mb-8 rounded-md border border-marigold-300 bg-marigold-100/50 px-4 py-3 text-sm text-marigold-800">
           Sample build: all fees are fictional placeholders. They are generated live from the fee engine
           configured in the CRM, so a fee revision there updates this page and the PDF automatically.
         </p>

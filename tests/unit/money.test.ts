@@ -39,8 +39,21 @@ describe("money", () => {
   });
 });
 
+describe("compact money", () => {
+  it("abbreviates to lakh and crore for chart labels", () => {
+    expect(formatINR(6_000_000, { compact: true })).toBe("₹60,000");
+    expect(formatINR(10_000_000, { compact: true })).toBe("₹1 L");
+    expect(formatINR(63_150_000, { compact: true })).toBe("₹6.32 L");
+    expect(formatINR(280_000_000, { compact: true })).toBe("₹28 L");
+    expect(formatINR(9_439_960_200, { compact: true })).toBe("₹9.44 Cr");
+    expect(formatINR(12_400_000_000, { compact: true })).toBe("₹12.4 Cr");
+    expect(formatINR(-10_600_000, { compact: true })).toBe("−₹1.06 L");
+  });
+});
+
 describe("dates", async () => {
-  const { formatDate, financialYearOf, ageOn, utcDate } = await import("@/lib/dates");
+  const { formatDate, financialYearOf, ageOn, utcDate, istDayStart, istDateOnly, istMonthStart, istWeekday } =
+    await import("@/lib/dates");
   it("formats in IST regardless of the host timezone", () => {
     expect(formatDate("2026-10-24T04:00:00Z", "d MMM yyyy, h:mm a")).toBe("24 Oct 2026, 9:30 AM");
     expect(formatDate("2026-10-23T20:00:00Z", "d MMM")).toBe("24 Oct");
@@ -51,6 +64,19 @@ describe("dates", async () => {
     expect(financialYearOf(utcDate(2027, 2, 10))).toBe("2026-27");
     expect(financialYearOf(utcDate(2027, 4, 1))).toBe("2027-28");
     expect(financialYearOf(new Date("2027-03-31T20:00:00Z"))).toBe("2027-28"); // 1 Apr 01:30 IST
+  });
+  it("finds IST day and month boundaries whatever the host timezone", () => {
+    const lateEvening = new Date("2026-09-30T20:00:00Z"); // 1 Oct 01:30 IST
+    expect(istDayStart(lateEvening).toISOString()).toBe("2026-09-30T18:30:00.000Z");
+    expect(istDayStart(lateEvening, 1).toISOString()).toBe("2026-10-01T18:30:00.000Z");
+    expect(istDayStart(lateEvening, -1).toISOString()).toBe("2026-09-29T18:30:00.000Z");
+    expect(istDateOnly(lateEvening).toISOString()).toBe("2026-10-01T00:00:00.000Z");
+    expect(istDateOnly(utcDate(2026, 10, 31), 1).toISOString()).toBe("2026-11-01T00:00:00.000Z");
+    expect(istMonthStart(lateEvening).toISOString()).toBe("2026-09-30T18:30:00.000Z");
+    expect(istMonthStart(lateEvening, -7).toISOString()).toBe("2026-02-28T18:30:00.000Z");
+    expect(istMonthStart(utcDate(2027, 1, 15), -1).toISOString()).toBe("2026-11-30T18:30:00.000Z");
+    expect(istWeekday(lateEvening)).toBe(4); // Thursday in IST, Wednesday in UTC
+    expect(istWeekday(new Date("2026-10-04T06:00:00Z"))).toBe(7);
   });
   it("computes age in completed years", () => {
     expect(ageOn(utcDate(2014, 6, 14), utcDate(2026, 6, 13))).toBe(11);

@@ -27,7 +27,7 @@ const components = {
     </figure>
   ),
   Note: ({ children }: { children: ReactNode }) => (
-    <aside className="flex gap-3 rounded-md border border-marigold-300 bg-marigold-100/50 px-4 py-3 text-sm text-marigold-700">
+    <aside className="flex gap-3 rounded-md border border-marigold-300 bg-marigold-100/50 px-4 py-3 text-sm text-marigold-800">
       <Info className="mt-0.5 size-4 shrink-0" aria-hidden />
       <div>{children}</div>
     </aside>

@@ -45,7 +45,7 @@ export function LeadBoard({
     });
   };
   return (
-    <div className={cn("flex gap-3 overflow-x-auto pb-4", pending && "cursor-progress")}>
+    <div className={cn("relative flex gap-3 overflow-x-auto pb-4", pending && "cursor-progress")}>
       {columns.map((col) => {
         const list = optimistic.filter((c) => c.status === col.value);
         return (

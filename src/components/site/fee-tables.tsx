@@ -66,7 +66,7 @@ export function FeeTables({ schedule }: { schedule: PublicFeeSchedule }) {
               </h2>
               <p className="text-sm text-muted">{band.years}</p>
             </div>
-            <div className="overflow-x-auto rounded-lg border border-line bg-elevated">
+            <div className="relative overflow-x-auto rounded-lg border border-line bg-elevated">
               <table className="w-full min-w-[34rem] text-sm">
                 <caption className="sr-only">
                   {band.label} fees for {schedule.year.name}, per year, in Indian rupees

@@ -21,6 +21,7 @@
   --kiln-100: #f6e2d9;
 
   /* Marigold (accent) */
+  --marigold-800: #7a4f06; /* text on marigold-100: 6.2:1 */
   --marigold-700: #9a6408;
   --marigold-600: #c88a17;
   --marigold-500: #e3a72f;
@@ -71,6 +72,22 @@
   --info: var(--blue-700);
   --info-bg: var(--blue-100);
 
+  /*
+   * Data visualisation (CRM dashboard). Validated with the six-checks palette validator against the card surface
+   * (#ffffff light, #211923 dark): categorical slots pass every gate; the ordinal ramp is single-hue, monotone,
+   * ≥0.06 ΔL per step, light end ≥2:1. See docs/DESIGN_SYSTEM.md → Charts.
+   */
+  --viz-1: #86407a;
+  --viz-2: #c9850c;
+  --viz-ord-1: #e39cd3;
+  --viz-ord-2: #cc87bd;
+  --viz-ord-3: #b572a7;
+  --viz-ord-4: #9f5d91;
+  --viz-ord-5: #89497c;
+  --viz-ord-6: #733567;
+  --viz-ord-7: #5e2154;
+  --viz-track: var(--cream);
+
   /* Shape & rhythm */
   --radius-sm: 4px;
   --radius: 8px;
@@ -108,5 +125,16 @@
   --danger-bg: #3d1a18;
   --info: #a8c8ea;
   --info-bg: #1a2a3b;
+  /* Selected dark steps (not an automatic flip); the ordinal anchor flips so early stages sit nearest the surface. */
+  --viz-1: #a95b9b;
+  --viz-2: #c08010;
+  --viz-ord-1: #733b68;
+  --viz-ord-2: #894f7d;
+  --viz-ord-3: #9f6392;
+  --viz-ord-4: #b577a7;
+  --viz-ord-5: #cc8dbe;
+  --viz-ord-6: #e3a2d4;
+  --viz-ord-7: #fbb8eb;
+  --viz-track: #120d14;
   color-scheme: dark;
 }

@@ -42,7 +42,7 @@ export function LoginForms({
               <Input id="password" name="password" type="password" autoComplete="current-password" required />
             </Field>
             {pw.error && (
-              <p role="alert" className="text-danger text-sm">
+              <p role="alert" className="text-sm text-danger">
                 {pw.error}
               </p>
             )}
@@ -54,7 +54,7 @@ export function LoginForms({
 
         <TabsContent value="link">
           {ml.sent ? (
-            <p className="bg-success-bg text-success rounded-md px-4 py-3 text-sm" role="status">
+            <p className="rounded-md bg-success-bg px-4 py-3 text-sm text-success" role="status">
               If an account exists for that address, a sign-in link is on its way.
             </p>
           ) : (
@@ -76,7 +76,7 @@ export function LoginForms({
                 />
               </Field>
               {ml.error && (
-                <p role="alert" className="text-danger text-sm">
+                <p role="alert" className="text-sm text-danger">
                   {ml.error}
                 </p>
               )}
@@ -88,7 +88,7 @@ export function LoginForms({
         </TabsContent>
       </Tabs>
       {demo && (
-        <p className="border-marigold-500 bg-marigold-100/60 text-marigold-700 mt-8 rounded-md border border-dashed px-4 py-3 text-sm">
+        <p className="mt-8 rounded-md border border-dashed border-marigold-500 bg-marigold-100/60 px-4 py-3 text-sm text-marigold-800">
           Exploring the sample build?{" "}
           <Link href="/login?demo=1" className="font-medium underline">
             Use one-click demo accounts

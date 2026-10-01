@@ -14,6 +14,7 @@ import { ageOn, formatDate } from "@/lib/dates";
 import { formatINR } from "@/lib/money";
 import { DOCUMENT_KINDS } from "@/lib/schemas/registration";
 import { AssessmentForm, DocumentActions, StageActions } from "./stage-actions";
+import { sourceLabel } from "@/lib/services/leads";
 
 export const metadata = { title: "Application" };
 
@@ -250,7 +251,7 @@ export default async function ApplicationDetail({ params }: { params: Promise<{ 
               </p>
               {app.lead && (
                 <Link href={`/admin/leads/${app.lead.id}`} className="block text-xs underline">
-                  Original enquiry ({app.lead.source})
+                  Original enquiry ({sourceLabel(app.lead.source)})
                 </Link>
               )}
             </CardBody>

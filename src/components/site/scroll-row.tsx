@@ -31,7 +31,7 @@ export function ScrollRow({ children, label }: { children: ReactNode; label: str
       <ul
         ref={ref}
         aria-label={label}
-        className="-mx-4 flex snap-x snap-mandatory [scrollbar-width:thin] gap-5 overflow-x-auto scroll-smooth px-4 pb-4"
+        className="relative -mx-4 flex snap-x snap-mandatory [scrollbar-width:thin] gap-5 overflow-x-auto scroll-smooth px-4 pb-4"
       >
         {children}
       </ul>

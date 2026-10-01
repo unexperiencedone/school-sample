@@ -6,6 +6,8 @@ import { ADULT_FEMALE, ADULT_MALE, GIRL_NAMES, SURNAMES } from "./names";
 import type { Rng } from "./rng";
 import { utc } from "./core";
 import { SEED_TODAY } from "./finance";
+import { formatDate } from "../../src/lib/dates";
+import { LEAD_STATUS_LABEL, sourceLabel } from "../../src/lib/services/leads";
 
 type Years = { prev: AcademicYear; curr: AcademicYear; next: AcademicYear };
 const day = 86400_000;
@@ -37,10 +39,42 @@ const STATUS_PLAN: [LeadStatus, number][] = [
   ["CONTACTED", 10],
   ["TOUR_BOOKED", 8],
   ["TOUR_DONE", 8],
-  ["APPLIED", 12],
-  ["ADMITTED", 6],
+  ["APPLIED", 16],
+  ["ADMITTED", 2],
   ["LOST", 6],
 ];
+/**
+ * How long ago (in days) a lead in each status was first received. Later-funnel leads are older; the window is
+ * skewed towards its recent end so enquiries build up into the autumn admissions season.
+ */
+const AGE_WINDOW: Record<LeadStatus, [number, number]> = {
+  NEW: [1, 9],
+  CONTACTED: [5, 45],
+  TOUR_BOOKED: [3, 30],
+  TOUR_DONE: [14, 80],
+  APPLIED: [60, 200],
+  ADMITTED: [190, 235],
+  LOST: [80, 220],
+};
+/** Clamp a timestamp so nothing in the demo history lies in the future. */
+const past = (t: number) => new Date(Math.min(t, SEED_TODAY.getTime() - 2 * 3600_000));
+const hour = 3600_000;
+const IST = 5.5 * hour;
+/** The IST calendar day of `t`, at hh:mm IST. */
+const istAt = (t: number, h: number, m = 0) => {
+  const d = new Date(t + IST);
+  return Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate(), h, m) - IST;
+};
+/**
+ * Moves a staff action into office hours (09:00–18:00 IST). Night-time instants are squeezed linearly into
+ * 09:00–09:45 the next morning, so the order of events is preserved.
+ */
+const officeHours = (t: number) => {
+  const h = new Date(t + IST).getUTCHours();
+  if (h >= 9 && h < 18) return t;
+  const nightStart = h >= 18 ? istAt(t, 18) : istAt(t - day, 18);
+  return nightStart + 15 * hour + Math.round(((t - nightStart) / (15 * hour)) * 45 * 60_000);
+};
 const LOST_REASONS = [
   "Chose a school closer to home",
   "Fees above budget",
@@ -60,7 +94,7 @@ export async function seedLeads(
   users: Record<string, string>,
   classes: ClassLevel[],
 ) {
-  const classNames = classes.filter((c) => c.order <= 13).map((c) => c.name);
+  const joinable = classes.filter((c) => c.order <= 13);
   const leads: {
     id: string;
     status: LeadStatus;
@@ -69,6 +103,8 @@ export async function seedLeads(
     parentName: string;
     childName: string;
     classApplying: string;
+    childDob: Date;
+    preferredBoarding: string;
     createdAt: Date;
   }[] = [];
   let i = 0;
@@ -78,17 +114,21 @@ export async function seedLeads(
       const surname = rng.pick(SURNAMES);
       const parent = `${rng.pick([...ADULT_FEMALE, ...ADULT_MALE])} ${surname}`;
       const child = rng.pick(GIRL_NAMES);
-      const createdAt = new Date(
-        utc(2026, 2, 1).getTime() +
-          Math.floor(((i * 233) % 240) * day * (status === "NEW" ? 0.12 : 1)) +
-          rng.int(8, 20) * 3600_000,
-      );
-      const created =
-        status === "NEW"
-          ? new Date(SEED_TODAY.getTime() - rng.int(0, 9) * day - rng.int(1, 10) * 3600_000)
-          : createdAt;
+      const [lo, hi] = AGE_WINDOW[status];
+      const daysAgo = lo + Math.floor((hi - lo) * rng.next() ** 1.6);
+      // Families enquire between 7am and 11pm
+      const created = past(istAt(SEED_TODAY.getTime() - daysAgo * day, rng.int(7, 22), rng.int(0, 59)));
       const [utmSource, utmMedium, utmCampaign] = rng.pick(UTM);
       const source = rng.pick(SOURCES);
+      // A child who fits the class she's applying for (for next September), with a boarding wish the school offers
+      const cls = rng.pick(joinable);
+      const childDob = new Date(utc(2026 - cls.minAge, 9, 1).getTime() + rng.int(0, 364) * day);
+      const boardingChoices =
+        cls.order >= 6
+          ? ["full", "flexi", "day", "unsure"]
+          : cls.order >= 4
+            ? ["flexi", "day", "unsure"]
+            : ["day", "unsure"];
       const lead = await db.lead.create({
         data: {
           type: source.includes("tour") ? "TOUR" : "ENQUIRY",
@@ -98,9 +138,9 @@ export async function seedLeads(
           phone: `+91 9${String(810000000 + i * 1931).slice(0, 9)}`,
           email: `${parent.split(" ")[0]!.toLowerCase()}.${surname.toLowerCase()}.${i}@example.com`,
           childName: child,
-          childDob: utc(2026 - rng.int(4, 16), rng.int(1, 12), rng.int(1, 28)),
-          classApplying: rng.pick(classNames),
-          preferredBoarding: rng.pick(["full", "flexi", "day", "unsure"]),
+          childDob,
+          classApplying: cls.name,
+          preferredBoarding: rng.pick(boardingChoices),
           message: rng.chance(0.4)
             ? rng.pick([
                 "Do you offer transport from the station?",
@@ -128,7 +168,7 @@ export async function seedLeads(
             ? new Date(SEED_TODAY.getTime() + rng.int(-3, 7) * day)
             : null,
           createdAt: created,
-          updatedAt: new Date(created.getTime() + rng.int(1, 20) * day),
+          updatedAt: past(created.getTime() + rng.int(1, 20) * day),
         },
       });
       leads.push({
@@ -139,54 +179,66 @@ export async function seedLeads(
         parentName: parent,
         childName: child,
         classApplying: lead.classApplying,
+        childDob,
+        preferredBoarding: lead.preferredBoarding ?? "unsure",
         createdAt: created,
       });
 
-      const acts: { kind: string; body: string; at: number; actor?: string }[] = [
-        { kind: "CREATED", body: `Enquiry received via ${source}`, at: 0 },
-      ];
+      // One coherent timeline: enquiry → call → tour booked → tour (checked in) → applied → admitted / lost.
+      const t0 = created.getTime();
       const flow: LeadStatus[] = ["CONTACTED", "TOUR_BOOKED", "TOUR_DONE", "APPLIED", "ADMITTED"];
       const reached =
         status === "LOST"
           ? flow.slice(0, rng.int(1, 3))
           : flow.slice(0, Math.max(0, flow.indexOf(status) + 1));
-      reached.forEach((s, n) =>
-        acts.push({
+      const toured = reached.includes("TOUR_BOOKED");
+      const futureTour = status === "TOUR_BOOKED";
+      let tourAt: Date | null = null;
+      if (toured) {
+        const when = futureTour
+          ? new Date(SEED_TODAY.getTime() + rng.int(2, 18) * day)
+          : past(t0 + rng.int(4, 12) * day - day);
+        const time = rng.pick(["09:30", "11:30", "14:30"]);
+        tourAt = new Date(`${when.toISOString().slice(0, 10)}T${time}:00+05:30`);
+        // A past tour can't predate the enquiry: fall back to the morning slot the day after
+        if (!futureTour && tourAt.getTime() <= t0)
+          tourAt = new Date(`${new Date(t0 + day).toISOString().slice(0, 10)}T09:30:00+05:30`);
+      }
+      const at: Partial<Record<LeadStatus, number>> = {
+        CONTACTED: officeHours(t0 + rng.int(3, 30) * hour),
+        TOUR_BOOKED: officeHours(t0 + rng.int(31, 48) * hour),
+        TOUR_DONE: tourAt ? tourAt.getTime() + 2 * 3600_000 : undefined,
+        APPLIED: officeHours((tourAt?.getTime() ?? t0) + rng.int(2, 8) * day),
+      };
+      at.ADMITTED = officeHours((at.APPLIED ?? t0) + rng.int(30, 60) * day);
+      const acts: { kind: string; body: string; at: number; actor?: string }[] = [
+        { kind: "CREATED", body: `Enquiry received via ${sourceLabel(source).toLowerCase()}`, at: t0 },
+        ...reached.map((s) => ({
           kind: s === "CONTACTED" ? "CALL" : "STATUS",
           body:
             s === "CONTACTED"
               ? "Called parent — answered questions about boarding and fees"
-              : `Status → ${s.replace("_", " ").toLowerCase()}`,
-          at: (n + 1) * rng.int(2, 6),
+              : s === "TOUR_BOOKED" && tourAt
+                ? `Tour booked for ${formatDate(tourAt, "d MMM, h:mm a")}`
+                : `Status → ${LEAD_STATUS_LABEL[s].toLowerCase()}`,
+          at: at[s]!,
           actor: users.ADMISSIONS,
-        }),
-      );
+        })),
+      ];
       if (status === "LOST")
         acts.push({
           kind: "STATUS",
           body: `Marked lost: ${lead.lostReason}`,
-          at: 30,
+          at: officeHours(Math.max(...acts.map((a) => a.at)) + rng.int(7, 20) * day),
           actor: users.ADMISSIONS,
         });
       for (const a of acts)
         await db.leadActivity.create({
-          data: {
-            leadId: lead.id,
-            kind: a.kind,
-            body: a.body,
-            actorId: a.actor,
-            createdAt: new Date(created.getTime() + a.at * day),
-          },
+          data: { leadId: lead.id, kind: a.kind, body: a.body, actorId: a.actor, createdAt: past(a.at) },
         });
 
-      if (["TOUR_BOOKED", "TOUR_DONE", "APPLIED", "ADMITTED"].includes(status)) {
-        const future = status === "TOUR_BOOKED";
-        const when = future
-          ? new Date(SEED_TODAY.getTime() + rng.int(2, 18) * day)
-          : new Date(created.getTime() + rng.int(4, 12) * day);
-        const date = when.toISOString().slice(0, 10);
-        const time = rng.pick(["09:30", "11:30", "14:30"]);
-        const startsAt = new Date(`${date}T${time}:00+05:30`);
+      if (tourAt) {
+        const startsAt = tourAt;
         const slot =
           (await db.tourSlot.findFirst({ where: { startsAt } })) ??
           (await db.tourSlot.create({
@@ -197,14 +249,16 @@ export async function seedLeads(
               label: "Campus tour",
             },
           }));
+        // Lost leads that booked but never came are no-shows; the rest checked in
+        const noShow = status === "LOST" && !reached.includes("TOUR_DONE");
         await db.tourBooking.create({
           data: {
             slotId: slot.id,
             leadId: lead.id,
             visitors: rng.int(1, 4),
-            status: future ? "BOOKED" : "CHECKED_IN",
-            checkedInAt: future ? null : startsAt,
-            createdAt: created,
+            status: futureTour ? "BOOKED" : noShow ? "NO_SHOW" : "CHECKED_IN",
+            checkedInAt: futureTour || noShow ? null : startsAt,
+            createdAt: past(at.TOUR_BOOKED!),
           },
         });
       }
@@ -232,7 +286,9 @@ export async function seedLeads(
         classApplying: original.classApplying,
         consent: true,
         consentAt: SEED_TODAY,
-        createdAt: new Date(SEED_TODAY.getTime() - rng.int(1, 4) * day),
+        createdAt: new Date(
+          istAt(SEED_TODAY.getTime() - rng.int(1, 4) * day, rng.int(8, 21), rng.int(0, 59)),
+        ),
         activities: { create: { kind: "CREATED", body: "Enquiry received via event-modal" } },
       },
     });
@@ -288,34 +344,75 @@ export async function seedApplications(
     parentName: string;
     childName: string;
     classApplying: string;
+    childDob: Date;
+    preferredBoarding: string;
     createdAt: Date;
   }[],
 ) {
   const actor = { id: users.ADMISSIONS!, role: "ADMISSIONS" as const };
   const principal = { id: users.PRINCIPAL!, role: "PRINCIPAL" as const };
   const storage = getStorage();
-  const appliedLeads = leads.filter((l) => l.status === "APPLIED" || l.status === "ADMITTED");
   let seq = 0;
   let paySeq = 0;
   const plan: { stage: ApplicationStage; demo?: boolean }[] = [
     { stage: "OFFER", demo: true },
     ...STAGE_PLAN.flatMap(([stage, n]) => Array.from({ length: n }, () => ({ stage }))),
   ];
+  const routeTo = (target: ApplicationStage): ApplicationStage[] =>
+    target === "WAITLISTED"
+      ? ["DOCUMENTS", "ASSESSMENT", "REVIEW", "WAITLISTED"]
+      : target === "REJECTED"
+        ? ["DOCUMENTS", "ASSESSMENT", "REVIEW", "REJECTED"]
+        : PATH.slice(0, PATH.indexOf(target) + 1);
 
-  for (const item of plan) {
+  // Pair applications with enquiries so timelines make sense: the furthest-along applications take the oldest
+  // enquiries, admitted pupils take the ADMITTED leads, and the rest registered online without enquiring first.
+  const byAge = (a: { createdAt: Date }, b: { createdAt: Date }) =>
+    a.createdAt.getTime() - b.createdAt.getTime();
+  const admittedLeads = leads.filter((l) => l.status === "ADMITTED").sort(byAge);
+  const appliedLeads = leads.filter((l) => l.status === "APPLIED").sort(byAge);
+  const leadFor = new Map<number, (typeof leads)[number]>();
+  plan
+    .map((item, idx) => ({ item, idx }))
+    .filter((x) => !x.item.demo)
+    .sort((a, b) => routeTo(b.item.stage).length - routeTo(a.item.stage).length)
+    .forEach(({ item, idx }) => {
+      const lead = item.stage === "ADMITTED" ? admittedLeads.shift() : appliedLeads.shift();
+      if (lead) leadFor.set(idx, lead);
+    });
+
+  for (const [idx, item] of plan.entries()) {
     seq++;
-    const lead = item.demo ? null : appliedLeads[(seq - 2) % appliedLeads.length];
+    const lead = leadFor.get(idx) ?? null;
+    const route = routeTo(item.stage);
+    // Stage gaps (days) and the latest moment registration can have happened for the whole route to be in the past
+    const gaps = route.map(() => rng.int(4, 12));
+    const span = (gaps.reduce((a, b) => a + b, 0) + (route.includes("FEE_PAID") ? 3 : 0) + 2) * day;
     const admittedNow = item.stage === "ADMITTED";
     const year = admittedNow ? years.curr : years.next;
+    // The application follows its enquiry: same child, same class (a year lower when joining this year), and the
+    // boarding the family asked about when the school offers it at that age.
+    const enquired = lead ? classes.find((c) => c.name === lead.classApplying) : undefined;
     const cls = item.demo
       ? classes.find((c) => c.code === "Y7")!
-      : rng.pick(classes.filter((c) => c.order >= 1 && c.order <= 13));
+      : enquired
+        ? admittedNow && enquired.order > 0
+          ? classes.find((c) => c.order === enquired.order - 1)!
+          : enquired
+        : rng.pick(classes.filter((c) => c.order >= 1 && c.order <= 13));
+    const wish = lead?.preferredBoarding.toUpperCase();
     const boarding =
-      cls.order >= 6
-        ? rng.pick(["FULL", "FULL", "DAY", "FLEXI"] as const)
-        : cls.order >= 4
-          ? rng.pick(["DAY", "FLEXI"] as const)
-          : "DAY";
+      wish === "FULL" && cls.order >= 6
+        ? "FULL"
+        : wish === "FLEXI" && cls.order >= 4
+          ? "FLEXI"
+          : wish === "DAY"
+            ? "DAY"
+            : cls.order >= 6
+              ? rng.pick(["FULL", "FULL", "DAY", "FLEXI"] as const)
+              : cls.order >= 4
+                ? rng.pick(["DAY", "FLEXI"] as const)
+                : "DAY";
     const surname = item.demo ? "Sethi" : (lead?.parentName.split(" ").slice(-1)[0] ?? rng.pick(SURNAMES));
     const parentName = item.demo
       ? "Rohan Sethi"
@@ -325,12 +422,16 @@ export async function seedApplications(
       : (lead?.email ??
         `${parentName.split(" ")[0]!.toLowerCase()}.${surname.toLowerCase()}.app${seq}@example.com`);
     const phone = lead?.phone ?? `+91 9${String(870000000 + seq * 4441).slice(0, 9)}`;
-    const registeredAt = item.demo
-      ? utc(2026, 8, 18)
-      : new Date(
-          Math.max(lead?.createdAt.getTime() ?? utc(2026, 4, 1).getTime(), utc(2026, 3, 15).getTime()) +
-            rng.int(5, 25) * day,
-        );
+    const notBefore = (lead?.createdAt.getTime() ?? utc(2026, 3, 15).getTime()) + 2 * day;
+    // Registration is placed so the latest stage move happened in the last few weeks: a live pipeline, not an archive
+    const candidate = item.demo
+      ? utc(2026, 8, 18).getTime()
+      : istAt(SEED_TODAY.getTime() - span - rng.int(1, 25) * day, rng.int(8, 22), rng.int(0, 59));
+    const registeredAt = new Date(Math.max(notBefore, Math.min(candidate, SEED_TODAY.getTime() - span)));
+    // If the enquiry was too recent for the full route, compress the stage gaps to fit before today
+    const room = (SEED_TODAY.getTime() - day - registeredAt.getTime()) / day;
+    const need = gaps.reduce((a, b) => a + b, 0) + (route.includes("FEE_PAID") ? 3 : 0);
+    if (need > room) gaps.forEach((g, k) => (gaps[k] = Math.max(1, Math.floor((g * room) / need))));
     const ref = `AH26-${String(seq).padStart(4, "0")}`;
     const app = await db.application.create({
       data: {
@@ -340,7 +441,9 @@ export async function seedApplications(
         applicantUserId: item.demo ? users.APPLICANT : undefined,
         childFirstName: item.demo ? "Mehr" : (lead?.childName ?? rng.pick(GIRL_NAMES)),
         childLastName: surname,
-        dob: utc(year.startDate.getUTCFullYear() - cls.minAge - 1, rng.int(1, 12), rng.int(1, 28)),
+        dob:
+          lead?.childDob ??
+          utc(year.startDate.getUTCFullYear() - cls.minAge - 1, rng.int(9, 12), rng.int(1, 28)),
         currentSchool: rng.pick([
           "Sample Public School",
           "Riverside Academy (sample)",
@@ -444,17 +547,10 @@ export async function seedApplications(
     }
 
     // Walk the state machine to the target stage
-    const target = item.stage;
-    const route: ApplicationStage[] =
-      target === "WAITLISTED"
-        ? ["DOCUMENTS", "ASSESSMENT", "REVIEW", "WAITLISTED"]
-        : target === "REJECTED"
-          ? ["DOCUMENTS", "ASSESSMENT", "REVIEW", "REJECTED"]
-          : PATH.slice(0, PATH.indexOf(target) + 1);
     let at = registeredAt.getTime();
-    for (const stage of route) {
+    for (const [k, stage] of route.entries()) {
       if (stage === "ASSESSMENT") {
-        const assessAt = new Date(at + rng.int(5, 12) * day + 10 * 3600_000);
+        const assessAt = new Date(istAt(at + Math.max(1, gaps[k]! - 1) * day, rng.pick([10, 11, 14]), 30));
         await db.application.update({ where: { id: app.id }, data: { assessmentAt: assessAt } });
       }
       if (stage === "REVIEW") {
@@ -489,7 +585,7 @@ export async function seedApplications(
             providerPaymentId: `mock_pay_offer_${++paySeq}`,
             method: "NETBANKING",
             amountPaise: first.amountPaise,
-            receivedAt: new Date(at + 3 * day),
+            receivedAt: new Date(Math.min(at + 3 * day, SEED_TODAY.getTime() - day)),
             studentId: student.id,
             allocate: { instalmentId: first.id },
           }),
@@ -508,21 +604,21 @@ export async function seedApplications(
           ),
         { timeout: 30_000 },
       );
-      at += rng.int(4, 12) * day;
+      at += gaps[k]! * day;
       const latest = await db.applicationEvent.findFirstOrThrow({
         where: { applicationId: app.id },
         orderBy: { createdAt: "desc" },
       });
       await db.applicationEvent.update({
         where: { id: latest.id },
-        data: { createdAt: new Date(Math.min(at, SEED_TODAY.getTime() - day)) },
+        data: { createdAt: new Date(officeHours(Math.min(at, SEED_TODAY.getTime() - day))) },
       });
     }
-    if (target === "OFFER")
+    if (item.stage === "OFFER")
       await db.application.update({
         where: { id: app.id },
         data: {
-          offerIssuedAt: new Date(Math.min(at, SEED_TODAY.getTime() - 2 * day)),
+          offerIssuedAt: new Date(officeHours(Math.min(at, SEED_TODAY.getTime() - 2 * day))),
           offerExpiresAt: new Date(SEED_TODAY.getTime() + 12 * day),
         },
       });

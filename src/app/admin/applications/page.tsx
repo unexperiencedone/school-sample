@@ -62,7 +62,7 @@ export default async function ApplicationsBoard({
           },
         ]}
       />
-      <div className="flex gap-3 overflow-x-auto pb-4">
+      <div className="relative flex gap-3 overflow-x-auto pb-4">
         {[...PIPELINE, ...CLOSED].map((stage) => {
           const list = apps.filter((a) => a.stage === stage);
           return (

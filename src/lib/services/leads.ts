@@ -27,6 +27,20 @@ export const LEAD_STATUS_LABEL: Record<LeadStatus, string> = {
   LOST: "Lost",
 };
 
+/** Where on the website (or off it) an enquiry came from, for people rather than databases. */
+export const LEAD_SOURCE_LABEL: Record<string, string> = {
+  drawer: "Enquiry drawer",
+  admissions: "Admissions page",
+  contact: "Contact page",
+  "contact-tour": "Contact page tour",
+  "event-modal": "Event pop-up",
+  "book-a-tour": "Book a tour page",
+  "walk-in": "Walk-in",
+  phone: "Phone call",
+};
+
+export const sourceLabel = (source: string) => LEAD_SOURCE_LABEL[source] ?? source;
+
 export const TOUR_SLOT_CAPACITY = 6;
 
 export function leadRef(lead: Pick<Lead, "id" | "createdAt">): string {

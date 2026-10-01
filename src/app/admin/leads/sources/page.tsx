@@ -1,6 +1,7 @@
 import { requireStaff } from "@/lib/auth/session";
 import { db } from "@/lib/db";
 import { dateRange } from "@/lib/crm/list";
+import { sourceLabel } from "@/lib/services/leads";
 import { PageHeader } from "@/components/crm/page-header";
 import { FilterBar } from "@/components/crm/table/filter-bar";
 import { Table, THead, Th, Tr, Td } from "@/components/ui/table";
@@ -70,7 +71,11 @@ export default async function SourcesPage({
         <Table>
           <THead>
             <tr>
-              <Th>{by === "source" ? "Placement" : by}</Th>
+              <Th>
+                {by === "source"
+                  ? "Placement"
+                  : { utmSource: "UTM source", utmMedium: "UTM medium", utmCampaign: "UTM campaign" }[by]}
+              </Th>
               <Th className="text-right">Leads</Th>
               <Th className="text-right">Share</Th>
               <Th className="text-right">Toured</Th>
@@ -83,7 +88,7 @@ export default async function SourcesPage({
           <tbody>
             {rows.map((r) => (
               <Tr key={r.key}>
-                <Td className="font-medium">{r.key}</Td>
+                <Td className="font-medium">{by === "source" ? sourceLabel(r.key) : r.key}</Td>
                 <Td className="text-right tabular-nums">{r.total}</Td>
                 <Td className="text-right text-muted tabular-nums">{pct(r.total, total)}</Td>
                 <Td className="text-right tabular-nums">{r.toured}</Td>

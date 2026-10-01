@@ -5,6 +5,7 @@ import { seedVacancies } from "./seed/careers";
 import { seedSections, seedStaff, seedStudents, seedTimetable } from "./seed/people";
 import { seedFinance, seedRefundsAndImprest } from "./seed/finance";
 import { seedApplications, seedLeads } from "./seed/admissions";
+import { seedOutbox } from "./seed/outbox";
 import { seedContent } from "./seed/content";
 import { createRng } from "./seed/rng";
 
@@ -37,7 +38,7 @@ export async function seed(client: PrismaClient = db, log: (m: string) => void =
   step("fee heads, structures, plans");
   const staff = await seedStaff(client, users, academics.subjects);
   const sections = await seedSections(client, academics, academics.classes, staff);
-  await seedTimetable(client, rng, academics.curr.id, academics.subjects, staff);
+  await seedTimetable(client, rng, academics.curr.id, academics.subjects);
   step("staff, sections, timetable");
   const { students } = await seedStudents(
     client,
@@ -67,6 +68,8 @@ export async function seed(client: PrismaClient = db, log: (m: string) => void =
   step(`${leads.length} leads, tours`);
   const apps = await seedApplications(client, rng, academics, academics.classes, users, leads);
   step(`${apps} applications`);
+  const messages = await seedOutbox(client);
+  step(`${messages} outbox messages`);
   log(`Seeded the sample school in ${((Date.now() - t0) / 1000).toFixed(1)}s`);
 }
 

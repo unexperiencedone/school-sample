@@ -27,14 +27,24 @@ export function rupees(amount: number): Paise {
   return toPaise(amount);
 }
 
-/** Paise → "₹1,25,000" (Indian digit grouping). Shows paise only when non-zero unless `alwaysDecimals`. */
+/**
+ * Paise → "₹1,25,000" (Indian digit grouping). Shows paise only when non-zero unless `alwaysDecimals`.
+ * `compact` abbreviates to lakh / crore for chart labels ("₹6.3 L", "₹9.44 Cr") — display only, never on documents.
+ */
 export function formatINR(
   paise: Paise,
-  opts: { alwaysDecimals?: boolean; sign?: boolean; symbol?: string } = {},
+  opts: { alwaysDecimals?: boolean; sign?: boolean; symbol?: string; compact?: boolean } = {},
 ): string {
   assertPaise(paise);
   const negative = paise < 0;
   const abs = Math.abs(paise);
+  const rupeesAbs = abs / 100;
+  if (opts.compact && rupeesAbs >= 1e5) {
+    const [unit, div] = rupeesAbs >= 1e7 ? (["Cr", 1e7] as const) : (["L", 1e5] as const);
+    const n = rupeesAbs / div;
+    const text = n.toFixed(n >= 10 ? 1 : 2).replace(/\.?0+$/, "");
+    return `${negative ? "−" : opts.sign && paise > 0 ? "+" : ""}${opts.symbol ?? "₹"}${text} ${unit}`;
+  }
   const whole = Math.floor(abs / 100);
   const frac = abs % 100;
   const grouped = groupIndian(String(whole));

@@ -3,7 +3,7 @@ import { cn } from "@/lib/utils";
 
 export function Table({ className, ...props }: HTMLAttributes<HTMLTableElement>) {
   return (
-    <div className="w-full overflow-x-auto">
+    <div className="relative w-full overflow-x-auto">
       <table className={cn("w-full border-collapse text-sm", className)} {...props} />
     </div>
   );
@@ -11,7 +11,7 @@ export function Table({ className, ...props }: HTMLAttributes<HTMLTableElement>)
 export function THead(props: HTMLAttributes<HTMLTableSectionElement>) {
   return (
     <thead
-      className="bg-sunken text-muted sticky top-0 z-[1] text-left text-xs font-semibold tracking-wide uppercase"
+      className="sticky top-0 z-[1] bg-sunken text-left text-xs font-semibold tracking-wide text-muted uppercase"
       {...props}
     />
   );
@@ -20,7 +20,7 @@ export function Th({ className, ...props }: ThHTMLAttributes<HTMLTableCellElemen
   return (
     <th
       scope="col"
-      className={cn("border-line border-b px-3 py-2.5 font-semibold whitespace-nowrap", className)}
+      className={cn("border-b border-line px-3 py-2.5 font-semibold whitespace-nowrap", className)}
       {...props}
     />
   );
@@ -28,7 +28,7 @@ export function Th({ className, ...props }: ThHTMLAttributes<HTMLTableCellElemen
 export function Tr({ className, ...props }: HTMLAttributes<HTMLTableRowElement>) {
   return (
     <tr
-      className={cn("border-line/70 hover:bg-sunken/60 border-b transition-colors", className)}
+      className={cn("border-b border-line/70 transition-colors hover:bg-sunken/60", className)}
       {...props}
     />
   );

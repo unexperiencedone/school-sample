@@ -3,7 +3,7 @@ import { formatDistanceToNowStrict } from "date-fns";
 import { requireStaff } from "@/lib/auth/session";
 import { can } from "@/lib/rbac";
 import { db } from "@/lib/db";
-import { LEAD_STATUS_FLOW, LEAD_STATUS_LABEL } from "@/lib/services/leads";
+import { LEAD_STATUS_FLOW, LEAD_STATUS_LABEL, sourceLabel } from "@/lib/services/leads";
 import { PageHeader } from "@/components/crm/page-header";
 import { LeadBoard } from "./board";
 
@@ -24,17 +24,15 @@ export default async function PipelinePage() {
       ),
     ),
   ]);
-  const cards = perStatus
-    .flat()
-    .map((l) => ({
-      id: l.id,
-      parentName: l.parentName,
-      childName: l.childName,
-      classApplying: l.classApplying,
-      source: l.source,
-      status: l.status,
-      age: formatDistanceToNowStrict(l.createdAt, { addSuffix: true }),
-    }));
+  const cards = perStatus.flat().map((l) => ({
+    id: l.id,
+    parentName: l.parentName,
+    childName: l.childName,
+    classApplying: l.classApplying,
+    source: sourceLabel(l.source),
+    status: l.status,
+    age: formatDistanceToNowStrict(l.createdAt, { addSuffix: true }),
+  }));
   const columns = LEAD_STATUS_FLOW.map((s) => ({
     value: s,
     label: LEAD_STATUS_LABEL[s],

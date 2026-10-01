@@ -63,7 +63,7 @@ export function StageActions({
             key={t}
             size="sm"
             variant={t === "REJECTED" || t === "WITHDRAWN" ? "ghost" : target === t ? "primary" : "outline"}
-            disabled={decisions.includes(t) && !canDecide}
+            disabled={pending || (decisions.includes(t) && !canDecide)}
             onClick={() => open(t)}
             title={
               decisions.includes(t) && !canDecide ? "Needs the applications:decide permission" : undefined

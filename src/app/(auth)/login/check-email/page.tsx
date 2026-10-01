@@ -7,14 +7,14 @@ export const metadata = { title: "Check your email", robots: { index: false } };
 export default function CheckEmail() {
   return (
     <div className="text-center">
-      <MailCheck className="text-kiln-700 mx-auto mb-4 size-10" />
+      <MailCheck className="mx-auto mb-4 size-10 text-kiln-700" />
       <h1 className="t-h2 text-primary">Check your email</h1>
-      <p className="text-muted mt-3">
+      <p className="mt-3 text-muted">
         If an account exists for that address, a sign-in link is on its way. It works once and expires in 30
         minutes.
       </p>
       {isDemoMode() && (
-        <p className="bg-marigold-100 text-marigold-700 mt-6 rounded-md px-4 py-3 text-sm">
+        <p className="mt-6 rounded-md bg-marigold-100 px-4 py-3 text-sm text-marigold-800">
           Sample build: emails are not sent. Open the outbox at{" "}
           <Link className="underline" href="/api/dev/outbox">
             /api/dev/outbox
@@ -22,7 +22,7 @@ export default function CheckEmail() {
           to click the link.
         </p>
       )}
-      <Link href="/login" className="text-primary mt-8 inline-block text-sm underline">
+      <Link href="/login" className="mt-8 inline-block text-sm text-primary underline">
         Back to sign in
       </Link>
     </div>

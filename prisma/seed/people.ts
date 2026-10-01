@@ -13,6 +13,19 @@ const EXTRA_STAFF = [
   ["Asha", "Naidu", "Teacher of Geography", "Humanities", ["GEO", "HIS"]],
   ["Rohan", "Gill", "Teacher of Computer Science", "Design & Technology", ["CSC"]],
   ["Mira", "Lal", "Teacher of Biology", "Science", ["BIO", "SCI"]],
+  ["Neha", "Joshi", "Teacher of English", "Upper School", ["ENG"]],
+  ["Kiran", "Das", "Teacher of English", "Upper School", ["ENG"]],
+  ["Ruth", "Mathew", "Teacher of English and Drama", "Creative Arts", ["ENG", "DRA"]],
+  ["Gauri", "Bhave", "Year 5 Class Teacher", "Prep", ["ENG", "MAT"]],
+  ["Pallavi", "Shetty", "Teacher of Mathematics", "Upper School", ["MAT"]],
+  ["Arun", "Krishnan", "Teacher of Mathematics", "Upper School", ["MAT"]],
+  ["Sana", "Qadri", "Teacher of Mathematics", "Sixth Form", ["MAT", "ECO"]],
+  ["Devika", "Pillai", "Teacher of Chemistry", "Science", ["CHE", "SCI"]],
+  ["Maya", "Fernandes", "Teacher of Geography", "Humanities", ["GEO", "HIS"]],
+  ["Ananya", "Ghosh", "Teacher of French", "Languages", ["FRE"]],
+  ["Smita", "Tiwari", "Teacher of Hindi and French", "Languages", ["HIN", "FRE"]],
+  ["Ishita", "Malhotra", "Teacher of Art & Design", "Creative Arts", ["ART"]],
+  ["Megha", "Sinha", "Teacher of Physical Education", "Sport", ["PE"]],
 ] as const;
 
 const SUBJECTS_FOR: Record<string, string[]> = {
@@ -30,7 +43,7 @@ const SUBJECTS_FOR: Record<string, string[]> = {
   "isha-kapoor": ["WEL", "PSY"],
 };
 
-/** Staff (12 faculty from content + 6 more = 18), linking demo users for Principal, Teacher and Houseparent. */
+/** Staff (12 faculty from content + 19 more = 31), linking demo users for Principal, Teacher and Houseparent. */
 export async function seedStaff(db: PrismaClient, users: Record<string, string>, subjects: Subject[]) {
   const bySubject = (codes: readonly string[]) =>
     subjects.filter((s) => codes.includes(s.code)).map((s) => ({ id: s.id }));
@@ -72,26 +85,36 @@ export async function seedStaff(db: PrismaClient, users: Record<string, string>,
   return staff;
 }
 
-/** Two sections per class for each year (one for Sixth Form), with class teachers rotating through the staff. */
+/**
+ * Two small sections per class for each year (one for Sixth Form): 16 places in the Pre-Prep, 20 from Year 3 and 18 in
+ * each Sixth Form year. Class teachers rotate through the staff.
+ */
 export async function seedSections(
   db: PrismaClient,
   years: Years,
   classes: ClassLevel[],
-  staff: { id: string }[],
+  staff: { id: string; email: string }[],
 ) {
   const sections: Record<string, { id: string; classId: string; yearId: string; name: string }[]> = {};
+  // The demo Teacher (Tara Bhatt) is this year's Year 4 A form tutor; everyone else rotates.
+  const demoTeacher = staff.find((s) => s.email === "tara.bhatt@aurelia-sample.test")!;
+  const rotation = staff.filter((s) => s.id !== demoTeacher.id);
   let t = 0;
   for (const year of [years.prev, years.curr, years.next]) {
     for (const c of classes) {
       const names = c.band === "SIXTH_FORM" ? ["A"] : ["A", "B"];
       for (const name of names) {
+        const tutor =
+          year.id === years.curr.id && c.code === "Y4" && name === "A"
+            ? demoTeacher
+            : rotation[t++ % rotation.length]!;
         const s = await db.section.create({
           data: {
             classId: c.id,
             yearId: year.id,
             name,
-            capacity: c.band === "PRE_PREP" ? 16 : c.band === "SIXTH_FORM" ? 18 : 20,
-            classTeacherId: staff[t++ % staff.length]!.id,
+            capacity: c.band === "PRE_PREP" ? 8 : c.band === "SIXTH_FORM" ? 18 : 10,
+            classTeacherId: tutor.id,
             room: `${c.code}-${name}`,
           },
         });
@@ -298,31 +321,106 @@ export async function seedStudents(
   return { students, families: families.length };
 }
 
-/** A basic weekly timetable (5 days × 6 periods) for every current-year section from Year 3 upwards. */
-export async function seedTimetable(
-  db: PrismaClient,
-  rng: Rng,
-  yearId: string,
-  subjects: Subject[],
-  staff: { id: string }[],
-) {
+/** Periods per week for each subject (30 = 5 days × 6 periods), Years 3–11 and Sixth Form. */
+const SIXTH_FORM_PLAN: [string, number][] = [
+  ["ENG", 4],
+  ["MAT", 6],
+  ["SCI", 6],
+  ["ECO", 4],
+  ["HIS", 3],
+  ["PSY", 2],
+  ["FRE", 2],
+  ["ART", 1],
+  ["PE", 1],
+  ["WEL", 1],
+];
+const WEEKLY_PLAN: [string, number][] = [
+  ["ENG", 6],
+  ["MAT", 6],
+  ["SCI", 4],
+  ["HIS", 2],
+  ["GEO", 2],
+  ["FRE", 2],
+  ["HIN", 1],
+  ["ART", 2],
+  ["MUS", 1],
+  ["PE", 2],
+  ["CSC", 1],
+  ["WEL", 1],
+];
+const MAX_TEACHING_PERIODS = 24;
+
+/**
+ * A weekly timetable (5 days × 6 periods) for every current-year section from Year 3 upwards. Each section's plan is
+ * shuffled so demand spreads across the week; a lesson goes to a qualified teacher who is free in that period — the
+ * form tutor first for their own form, otherwise the least-loaded colleague, within a weekly load cap. Nobody is ever
+ * double-booked; a lesson nobody can take is left unstaffed (cover needed).
+ */
+export async function seedTimetable(db: PrismaClient, rng: Rng, yearId: string, subjects: Subject[]) {
   const sections = await db.section.findMany({
     where: { yearId, class: { order: { gte: 4 } } },
     include: { class: true },
+    orderBy: [{ class: { order: "asc" } }, { name: "asc" }],
   });
-  const core = subjects.filter((s) =>
-    ["ENG", "MAT", "SCI", "HIS", "GEO", "FRE", "HIN", "ART", "MUS", "PE", "CSC", "WEL"].includes(s.code),
-  );
-  const teachers = await db.staff.findMany({ include: { subjects: true } });
+  const byCode = new Map(subjects.map((s) => [s.code, s]));
+  const teachers = await db.staff.findMany({
+    include: { subjects: true, user: true },
+    orderBy: { email: "asc" },
+  });
+  const busy = new Set<string>();
+  const load = new Map<string, number>();
   const rows = [];
   for (const sec of sections) {
+    const weekly = sec.class.band === "SIXTH_FORM" ? SIXTH_FORM_PLAN : WEEKLY_PLAN;
+    const plan = rng.shuffle(
+      weekly.flatMap(([code, n]) => Array.from({ length: n }, () => byCode.get(code)!)),
+    );
     for (let day = 1; day <= 5; day++) {
       for (let period = 1; period <= 6; period++) {
-        const subject =
-          period <= 2 ? core.find((c) => c.code === (day % 2 ? "MAT" : "ENG"))! : rng.pick(core);
-        const teacher = teachers.find((t) => t.subjects.some((s) => s.id === subject.id)) ?? rng.pick(staff);
-        rows.push({ sectionId: sec.id, day, period, subjectId: subject.id, teacherId: teacher.id });
+        const subject = plan[(day - 1) * 6 + (period - 1)]!;
+        const free = teachers.filter(
+          (t) =>
+            t.subjects.some((s) => s.id === subject.id) &&
+            !busy.has(`${t.id}:${day}:${period}`) &&
+            (load.get(t.id) ?? 0) < (t.user?.role === "PRINCIPAL" ? 4 : MAX_TEACHING_PERIODS),
+        );
+        const teacher =
+          free.find((t) => t.id === sec.classTeacherId) ??
+          free.sort((a, b) => (load.get(a.id) ?? 0) - (load.get(b.id) ?? 0))[0] ??
+          null;
+        if (teacher) {
+          busy.add(`${teacher.id}:${day}:${period}`);
+          load.set(teacher.id, (load.get(teacher.id) ?? 0) + 1);
+        }
+        rows.push({ sectionId: sec.id, day, period, subjectId: subject.id, teacherId: teacher?.id ?? null });
       }
+    }
+  }
+
+  // Repair pass: an unstaffed lesson X swaps places with another lesson Y of the same form when Y's teacher is free
+  // at X's time and a qualified teacher for X's subject is free at Y's time.
+  const key = (t: string, d: number, p: number) => `${t}:${d}:${p}`;
+  for (const x of rows.filter((r) => !r.teacherId)) {
+    for (const y of rows) {
+      if (y.sectionId !== x.sectionId || !y.teacherId || y.subjectId === x.subjectId) continue;
+      if (busy.has(key(y.teacherId, x.day, x.period))) continue;
+      const cover = teachers
+        .filter(
+          (t) =>
+            t.subjects.some((s) => s.id === x.subjectId) &&
+            !busy.has(key(t.id, y.day, y.period)) &&
+            (load.get(t.id) ?? 0) < (t.user?.role === "PRINCIPAL" ? 4 : MAX_TEACHING_PERIODS),
+        )
+        .sort((a, b) => (load.get(a.id) ?? 0) - (load.get(b.id) ?? 0))[0];
+      if (!cover) continue;
+      busy.delete(key(y.teacherId, y.day, y.period));
+      busy.add(key(y.teacherId, x.day, x.period));
+      busy.add(key(cover.id, y.day, y.period));
+      load.set(cover.id, (load.get(cover.id) ?? 0) + 1);
+      [x.subjectId, y.subjectId] = [y.subjectId, x.subjectId];
+      x.teacherId = y.teacherId;
+      y.teacherId = cover.id;
+      break;
     }
   }
   await db.timetableSlot.createMany({ data: rows });

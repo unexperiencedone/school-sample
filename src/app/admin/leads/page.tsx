@@ -12,7 +12,7 @@ import {
   LEAD_SORTS,
   type LeadFilters,
 } from "@/lib/services/leads-admin";
-import { LEAD_STATUS_FLOW, LEAD_STATUS_LABEL, leadRef } from "@/lib/services/leads";
+import { LEAD_STATUS_FLOW, LEAD_STATUS_LABEL, leadRef, sourceLabel } from "@/lib/services/leads";
 import { PageHeader } from "@/components/crm/page-header";
 import { LeadStatusBadge } from "@/components/crm/badges";
 import { FilterBar } from "@/components/crm/table/filter-bar";
@@ -95,7 +95,7 @@ export default async function LeadsPage({ searchParams }: { searchParams: Promis
             type: "select",
             name: "source",
             label: "Source",
-            options: facets.sources.map((s) => ({ value: s, label: s })),
+            options: facets.sources.map((s) => ({ value: s, label: sourceLabel(s) })),
           },
           {
             type: "select",
@@ -184,7 +184,7 @@ export default async function LeadsPage({ searchParams }: { searchParams: Promis
                     </Td>
                     <Td className="whitespace-nowrap">{l.classApplying}</Td>
                     <Td>
-                      <div>{l.source}</div>
+                      <div>{sourceLabel(l.source)}</div>
                       {l.utmSource && (
                         <div className="text-xs text-muted">
                           {l.utmSource}/{l.utmMedium ?? "—"}
