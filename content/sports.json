@@ -1,0 +1,139 @@
+[
+  {
+    "slug": "athletics",
+    "name": "Athletics",
+    "image": "/images/sport-athletics.webp",
+    "season": "Autumn & spring",
+    "summary": "Sprints, relays, jumps and throws on our eight-lane track.",
+    "body": "Athletics at Aurelia Hall begins with the joy of running fast and grows into technique, tactics and team spirit. Girls train three times a week in season, compete in the inter-house championships and represent the school at regional meets. Our coaches focus on safe progression, good form and a lifelong love of moving well.",
+    "facilities": [
+      "Eight-lane all-weather track",
+      "Long and triple jump pits",
+      "Throws cage",
+      "Strength and conditioning studio"
+    ],
+    "levels": ["House", "School team", "Regional"],
+    "schedule": "Mon, Wed, Fri · 3:45–5:15 pm"
+  },
+  {
+    "slug": "swimming",
+    "name": "Swimming",
+    "image": "/images/sport-swimming.webp",
+    "season": "All year",
+    "summary": "Learn-to-swim from Reception; squad training from Year 5.",
+    "body": "Every girl learns to swim confidently and safely. Lessons begin in Reception in our heated teaching pool, and by Prep girls can join the development squad. Older swimmers train before breakfast and compete in galas across the region, while others enjoy aqua-fitness and life-saving courses.",
+    "facilities": ["25 m heated pool", "Teaching pool", "Timing system"],
+    "levels": ["Learn-to-swim", "Development squad", "Performance squad"],
+    "schedule": "Daily early-morning sessions"
+  },
+  {
+    "slug": "tennis",
+    "name": "Tennis",
+    "image": "/images/sport-tennis.webp",
+    "season": "Autumn & summer",
+    "summary": "Six courts, small-group coaching and a friendly ladder.",
+    "body": "Tennis is taught in small groups so every girl gets plenty of time on court. Beginners learn on mini-courts with softer balls; more experienced players join the school ladder and play in inter-school leagues. Weekend clinics are open to boarders.",
+    "facilities": ["Four hard courts", "Two clay courts", "Floodlights"],
+    "levels": ["Beginner", "Ladder", "School team"],
+    "schedule": "Tue, Thu · 3:45–5:15 pm; Sat clinics"
+  },
+  {
+    "slug": "netball",
+    "name": "Netball",
+    "image": "/images/sport-netball.webp",
+    "season": "Autumn",
+    "summary": "Fast, tactical and fiercely sociable.",
+    "body": "Netball is one of our most popular team sports. Girls learn the fundamentals of footwork, passing and space from Year 3, and squads train for fixtures from Year 5. Every squad has an A, B and C team so that anyone who wants to play competitively can.",
+    "facilities": ["Three outdoor courts", "Indoor sports hall"],
+    "levels": ["House", "A/B/C teams"],
+    "schedule": "Mon, Thu · 3:45–5:00 pm"
+  },
+  {
+    "slug": "hockey",
+    "name": "Hockey",
+    "image": "/images/sport-hockey.webp",
+    "season": "Spring",
+    "summary": "Played on our water-based astro with specialist coaches.",
+    "body": "Our hockey programme combines skills sessions, small-sided games and full fixtures. Girls build stick skills early and progress to positional play and set pieces. The annual hockey tour is a highlight of the spring term.",
+    "facilities": ["Floodlit astro pitch", "Video analysis room"],
+    "levels": ["Development", "School team", "Tour squad"],
+    "schedule": "Tue, Fri · 3:45–5:15 pm"
+  },
+  {
+    "slug": "football",
+    "name": "Football",
+    "image": "/images/sport-football.webp",
+    "season": "Spring",
+    "summary": "A growing programme with girls' leagues and a seven-a-side cup.",
+    "body": "Football has grown quickly at Aurelia Hall. Girls play seven-a-side in Prep and eleven-a-side from Year 9, coached in technique, decision-making and fitness. Our teams enter regional girls' leagues and host the annual Aurelia Cup.",
+    "facilities": ["Two grass pitches", "Floodlit astro"],
+    "levels": ["Club", "School team"],
+    "schedule": "Wed · 3:45–5:15 pm; Sat fixtures"
+  },
+  {
+    "slug": "badminton",
+    "name": "Badminton",
+    "image": "/images/sport-badminton.webp",
+    "season": "All year",
+    "summary": "Quick reflexes, smart angles and a lot of laughter.",
+    "body": "Badminton is played in the sports hall all year round. It is a favourite with boarders in the evenings and has a competitive edge too: our singles and doubles players compete in inter-school tournaments.",
+    "facilities": ["Six-court sports hall"],
+    "levels": ["Recreational", "Competitive"],
+    "schedule": "Evenings and weekends"
+  },
+  {
+    "slug": "basketball",
+    "name": "Basketball",
+    "image": "/images/sport-basketball.webp",
+    "season": "Autumn & spring",
+    "summary": "Team play, shooting clinics and three-on-three tournaments.",
+    "body": "Our basketball coaches teach fundamentals, teamwork and game sense. Girls play in house leagues and in the school three-on-three tournament, and older girls compete in regional fixtures.",
+    "facilities": ["Indoor court", "Two outdoor courts"],
+    "levels": ["House league", "School team"],
+    "schedule": "Tue, Thu · 4:00–5:15 pm"
+  },
+  {
+    "slug": "equestrian",
+    "name": "Equestrian",
+    "image": "/images/sport-equestrian.webp",
+    "season": "All year",
+    "summary": "Riding lessons at a partner stable a short drive from campus.",
+    "body": "Girls can learn to ride or continue riding through our partnership with a local stable (sample partner). Lessons cover stable management as well as riding, and more experienced riders can take part in dressage and show-jumping clinics.",
+    "facilities": ["Partner stable and arena", "Weekly transport"],
+    "levels": ["Beginner", "Intermediate", "Advanced"],
+    "schedule": "Saturday mornings (optional extra)"
+  },
+  {
+    "slug": "climbing",
+    "name": "Climbing",
+    "image": "/images/sport-climbing.webp",
+    "season": "All year",
+    "summary": "Bouldering, belaying and problem-solving on the wall.",
+    "body": "Climbing builds strength, focus and trust. Our indoor wall has routes for every level, and girls learn to belay safely under supervision. Older climbers train for outdoor trips with the Horizon Fellowship.",
+    "facilities": ["Indoor climbing wall", "Bouldering cave"],
+    "levels": ["Intro", "Belay-certified", "Expedition"],
+    "schedule": "Wed, Fri · 4:00–5:30 pm"
+  },
+  {
+    "slug": "dance",
+    "name": "Dance",
+    "image": "/images/sport-dance.webp",
+    "season": "All year",
+    "summary": "Classical, contemporary and Indian classical forms.",
+    "body": "Dance is both an art and a sport here. Girls can study ballet, contemporary and Bharatanatyam with visiting specialists, perform in the winter showcase and take graded examinations.",
+    "facilities": ["Sprung-floor dance studio", "Arch Theatre"],
+    "levels": ["Graded classes", "Performance company"],
+    "schedule": "Daily after-school classes"
+  },
+  {
+    "slug": "yoga",
+    "name": "Yoga & mindfulness",
+    "image": "/images/sport-yoga.webp",
+    "season": "All year",
+    "summary": "Strength, flexibility and quiet — for girls and staff alike.",
+    "body": "Morning yoga on the terrace is a calm start for boarders, and after-school sessions help girls build strength, balance and focus. Mindfulness practices are woven into our wellbeing curriculum.",
+    "facilities": ["Terrace studio", "Wellbeing centre"],
+    "levels": ["Open to all"],
+    "schedule": "Daily 6:45 am; Mon, Thu after school"
+  }
+]

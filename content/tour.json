@@ -1,0 +1,45 @@
+{
+  "start": "arch",
+  "scenes": [
+    {
+      "id": "arch",
+      "name": "The North Arch",
+      "panorama": "/images/pano-arch.webp",
+      "caption": "The main entrance and cloister, where every school day begins.",
+      "links": [
+        { "to": "library", "yaw": 1.2, "pitch": -0.05, "label": "Library" },
+        { "to": "field", "yaw": -1.6, "pitch": -0.08, "label": "Long Field" }
+      ]
+    },
+    {
+      "id": "library",
+      "name": "The Library",
+      "panorama": "/images/pano-library.webp",
+      "caption": "Two floors of books, quiet study bays and the reading terrace.",
+      "links": [
+        { "to": "arch", "yaw": -2.4, "pitch": -0.05, "label": "North Arch" },
+        { "to": "glasshouse", "yaw": 0.6, "pitch": -0.05, "label": "Glasshouse" }
+      ]
+    },
+    {
+      "id": "glasshouse",
+      "name": "The Glasshouse",
+      "panorama": "/images/pano-glasshouse.webp",
+      "caption": "Our science wing: six laboratories and a rooftop observatory.",
+      "links": [
+        { "to": "library", "yaw": 2.8, "pitch": -0.05, "label": "Library" },
+        { "to": "field", "yaw": -0.9, "pitch": -0.05, "label": "Long Field" }
+      ]
+    },
+    {
+      "id": "field",
+      "name": "The Long Field",
+      "panorama": "/images/pano-field.webp",
+      "caption": "Playing fields, the athletics track and views over the valley.",
+      "links": [
+        { "to": "arch", "yaw": 1.5, "pitch": -0.05, "label": "North Arch" },
+        { "to": "glasshouse", "yaw": 2.6, "pitch": -0.05, "label": "Glasshouse" }
+      ]
+    }
+  ]
+}

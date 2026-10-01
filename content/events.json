@@ -1,0 +1,57 @@
+[
+  {
+    "slug": "open-morning-october-2026",
+    "title": "Autumn Open Morning",
+    "kind": "OPEN_HOUSE",
+    "summary": "Meet the Principal, tour the campus with our girls and sit in on a lesson.",
+    "description": "Our Open Mornings are the best way to feel what a day at Aurelia Hall is like. You'll hear from the Principal, walk the campus with two of our pupils, visit classrooms in session and meet heads of section over chai in the cloister. Boarding houses are open for visits from 11:30 am.",
+    "location": "Main Hall, North Arch",
+    "startsAt": "2026-10-24T04:00:00Z",
+    "endsAt": "2026-10-24T07:00:00Z",
+    "showInModal": true
+  },
+  {
+    "slug": "sixth-form-evening-2026",
+    "title": "Sixth Form Information Evening",
+    "kind": "ADMISSIONS_TALK",
+    "summary": "A Level choices, the Extended Project and university guidance explained.",
+    "description": "For families considering Sixth Form entry. Subject teachers will be available to discuss A Level choices, and current Sixth Formers will share what the two years are really like.",
+    "location": "Study Centre",
+    "startsAt": "2026-11-06T12:30:00Z",
+    "endsAt": "2026-11-06T14:30:00Z",
+    "showInModal": false
+  },
+  {
+    "slug": "winter-concert-2026",
+    "title": "Winter Concert",
+    "kind": "SCHOOL_EVENT",
+    "summary": "Orchestra, choirs and our youngest singers in the Arch Theatre.",
+    "description": "An evening of music from every corner of the school. Prospective families are warmly invited; please register so we can save you a seat.",
+    "location": "The Arch Theatre",
+    "startsAt": "2026-12-11T12:30:00Z",
+    "endsAt": "2026-12-11T14:30:00Z",
+    "showInModal": false
+  },
+  {
+    "slug": "pre-prep-play-morning-2027",
+    "title": "Pre-Prep Play Morning",
+    "kind": "OPEN_HOUSE",
+    "summary": "For families of children aged 3–6: stories, songs and the garden classroom.",
+    "description": "A relaxed morning for younger children and their grown-ups. Join a story session, explore the garden classroom and meet the Pre-Prep team.",
+    "location": "Pre-Prep Garden",
+    "startsAt": "2027-01-16T04:30:00Z",
+    "endsAt": "2027-01-16T06:30:00Z",
+    "showInModal": false
+  },
+  {
+    "slug": "spring-open-morning-2027",
+    "title": "Spring Open Morning",
+    "kind": "OPEN_HOUSE",
+    "summary": "Our second Open Morning of the year, including boarding house visits.",
+    "description": "As for our autumn Open Morning, with additional time in the boarding houses and a Q&A with houseparents.",
+    "location": "Main Hall, North Arch",
+    "startsAt": "2027-02-20T04:00:00Z",
+    "endsAt": "2027-02-20T07:00:00Z",
+    "showInModal": false
+  }
+]

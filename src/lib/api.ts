@@ -1,6 +1,6 @@
 import "server-only";
 import { NextResponse } from "next/server";
-import { ZodError, type ZodType } from "zod";
+import { ZodError, type z, type ZodTypeAny } from "zod";
 import { ForbiddenError, type Permission, assertCan } from "@/lib/rbac";
 import { NotConfiguredError } from "@/integrations/errors";
 import { getCurrentUser, type CurrentUser } from "@/lib/auth/session";
@@ -56,7 +56,7 @@ export function route<P = Record<string, string>>(
   };
 }
 
-export async function parseJson<T>(req: Request, schema: ZodType<T>): Promise<T> {
+export async function parseJson<S extends ZodTypeAny>(req: Request, schema: S): Promise<z.output<S>> {
   let body: unknown;
   try {
     body = await req.json();

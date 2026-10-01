@@ -1,0 +1,133 @@
+[
+  {
+    "slug": "teacher-of-mathematics",
+    "title": "Teacher of Mathematics",
+    "department": "Mathematics",
+    "employment": "Full-time",
+    "summary": "Teach KS3 to A Level in a department that loves a good proof.",
+    "requirements": [
+      "Degree in Mathematics or a closely related subject",
+      "Recognised teaching qualification",
+      "Experience of IGCSE or A Level",
+      "Commitment to co-curricular life"
+    ]
+  },
+  {
+    "slug": "teacher-of-english",
+    "title": "Teacher of English",
+    "department": "English",
+    "employment": "Full-time",
+    "summary": "Bring literature alive from Year 7 to Year 13.",
+    "requirements": [
+      "Degree in English",
+      "Teaching qualification",
+      "Experience of IGCSE English",
+      "Enthusiasm for drama, debating or the library"
+    ]
+  },
+  {
+    "slug": "head-of-chemistry",
+    "title": "Head of Chemistry",
+    "department": "Science",
+    "employment": "Full-time",
+    "summary": "Lead a team of three in our new Glasshouse labs.",
+    "requirements": [
+      "Degree in Chemistry",
+      "Three or more years' A Level teaching",
+      "Leadership experience",
+      "Strong practical and safety knowledge"
+    ]
+  },
+  {
+    "slug": "pre-prep-class-teacher",
+    "title": "Pre-Prep Class Teacher (Year 1)",
+    "department": "Pre-Prep",
+    "employment": "Full-time",
+    "summary": "Lead a Year 1 class with a dedicated teaching assistant.",
+    "requirements": [
+      "Early years or primary teaching qualification",
+      "Knowledge of synthetic phonics",
+      "Warmth, patience and imagination"
+    ]
+  },
+  {
+    "slug": "houseparent-banyan",
+    "title": "Houseparent, Banyan House",
+    "department": "Boarding",
+    "employment": "Full-time, residential",
+    "summary": "Care for forty boarders aged 11–16 as part of a house team.",
+    "requirements": [
+      "Experience of pastoral care with young people",
+      "Safeguarding training (or willingness to train)",
+      "Residential role: accommodation provided"
+    ]
+  },
+  {
+    "slug": "school-nurse",
+    "title": "School Nurse",
+    "department": "Medical Centre",
+    "employment": "Full-time, shifts",
+    "summary": "Join our medical centre team caring for day pupils and boarders.",
+    "requirements": ["Registered nurse", "Paediatric experience desirable", "Calm, kind and organised"]
+  },
+  {
+    "slug": "teacher-of-french",
+    "title": "Teacher of French",
+    "department": "Languages",
+    "employment": "Part-time (0.6)",
+    "summary": "Teach French from Year 3 to IGCSE.",
+    "requirements": [
+      "Degree in French or native fluency",
+      "Teaching qualification",
+      "Experience with younger learners desirable"
+    ]
+  },
+  {
+    "slug": "atelier-technician",
+    "title": "Atelier Design Technician",
+    "department": "Design & Technology",
+    "employment": "Full-time",
+    "summary": "Run the workshop, laser cutters and 3D printers in The Atelier.",
+    "requirements": [
+      "Workshop or maker-space experience",
+      "Health and safety awareness",
+      "Patience with first-time makers"
+    ]
+  },
+  {
+    "slug": "admissions-officer",
+    "title": "Admissions Officer",
+    "department": "Admissions",
+    "employment": "Full-time",
+    "summary": "Be the first friendly voice families hear.",
+    "requirements": ["Excellent communication in English and Hindi", "CRM experience", "Organised and warm"]
+  },
+  {
+    "slug": "accounts-assistant",
+    "title": "Accounts Assistant",
+    "department": "Finance",
+    "employment": "Full-time",
+    "summary": "Support fee collection, reconciliation and reporting.",
+    "requirements": ["Commerce degree", "Experience with reconciliation", "Attention to detail"]
+  },
+  {
+    "slug": "director-of-music",
+    "title": "Assistant Director of Music",
+    "department": "Creative Arts",
+    "employment": "Full-time",
+    "summary": "Direct choirs and support the orchestra and musical.",
+    "requirements": ["Music degree", "Choral direction experience", "Keyboard skills"]
+  },
+  {
+    "slug": "swimming-coach",
+    "title": "Swimming Coach",
+    "department": "Sport",
+    "employment": "Part-time",
+    "summary": "Coach learn-to-swim and squad sessions.",
+    "requirements": [
+      "Recognised coaching qualification",
+      "Lifeguard certification",
+      "Experience coaching children"
+    ]
+  }
+]

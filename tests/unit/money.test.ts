@@ -38,3 +38,22 @@ describe("money", () => {
     expect(() => splitByWeights(10, [])).toThrow();
   });
 });
+
+describe("dates", async () => {
+  const { formatDate, financialYearOf, ageOn, utcDate } = await import("@/lib/dates");
+  it("formats in IST regardless of the host timezone", () => {
+    expect(formatDate("2026-10-24T04:00:00Z", "d MMM yyyy, h:mm a")).toBe("24 Oct 2026, 9:30 AM");
+    expect(formatDate("2026-10-23T20:00:00Z", "d MMM")).toBe("24 Oct");
+    expect(formatDate(utcDate(2026, 4, 10))).toBe("10 Apr 2026");
+  });
+  it("derives the Indian financial year", () => {
+    expect(financialYearOf(utcDate(2026, 5, 15))).toBe("2026-27");
+    expect(financialYearOf(utcDate(2027, 2, 10))).toBe("2026-27");
+    expect(financialYearOf(utcDate(2027, 4, 1))).toBe("2027-28");
+    expect(financialYearOf(new Date("2027-03-31T20:00:00Z"))).toBe("2027-28"); // 1 Apr 01:30 IST
+  });
+  it("computes age in completed years", () => {
+    expect(ageOn(utcDate(2014, 6, 14), utcDate(2026, 6, 13))).toBe(11);
+    expect(ageOn(utcDate(2014, 6, 14), utcDate(2026, 6, 14))).toBe(12);
+  });
+});

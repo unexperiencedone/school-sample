@@ -28,7 +28,10 @@ export function rupees(amount: number): Paise {
 }
 
 /** Paise → "₹1,25,000" (Indian digit grouping). Shows paise only when non-zero unless `alwaysDecimals`. */
-export function formatINR(paise: Paise, opts: { alwaysDecimals?: boolean; sign?: boolean } = {}): string {
+export function formatINR(
+  paise: Paise,
+  opts: { alwaysDecimals?: boolean; sign?: boolean; symbol?: string } = {},
+): string {
   assertPaise(paise);
   const negative = paise < 0;
   const abs = Math.abs(paise);
@@ -37,7 +40,7 @@ export function formatINR(paise: Paise, opts: { alwaysDecimals?: boolean; sign?:
   const grouped = groupIndian(String(whole));
   const decimals = frac !== 0 || opts.alwaysDecimals ? `.${String(frac).padStart(2, "0")}` : "";
   const sign = negative ? "−" : opts.sign && paise > 0 ? "+" : "";
-  return `${sign}₹${grouped}${decimals}`;
+  return `${sign}${opts.symbol ?? "₹"}${grouped}${decimals}`;
 }
 
 /** Plain number string for CSV/inputs: 125000.5 → "125000.50" */

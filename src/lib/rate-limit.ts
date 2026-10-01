@@ -10,6 +10,7 @@ export async function rateLimit(
   limit: number,
   windowSeconds: number,
 ): Promise<{ ok: boolean; retryAfter: number }> {
+  if (process.env.E2E === "1") return { ok: true, retryAfter: 0 }; // e2e submits many forms from one IP
   const now = Date.now();
   const windowStart = new Date(Math.floor(now / (windowSeconds * 1000)) * windowSeconds * 1000);
   const row = await db.rateLimitHit.upsert({

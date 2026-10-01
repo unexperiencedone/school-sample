@@ -1,0 +1,204 @@
+[
+  {
+    "slug": "pre-prep",
+    "name": "Pre-Prep",
+    "ages": "4–7",
+    "years": "Nursery to Year 2",
+    "stage": "Early Years Foundation Stage and Key Stage 1",
+    "image": "/images/section-pre-prep.webp",
+    "tagline": "Wonder first. Then words, numbers and the confidence to use them.",
+    "intro": "Our youngest girls learn in bright, calm rooms that open straight onto the garden. Days are built around play with purpose: stories read aloud, counting with conkers, songs in three languages and a great deal of mud. Small classes and two adults in every room mean each child is known, noticed and gently stretched.",
+    "quotes": [
+      {
+        "text": "She comes home with a new question every day — and usually with paint on her sleeve.",
+        "by": "Parent of a Reception pupil (sample)"
+      },
+      {
+        "text": "We teach reading the way you'd teach a friend a secret: carefully, joyfully, and one sound at a time.",
+        "by": "Head of Pre-Prep (sample)"
+      },
+      {
+        "text": "The garden is our second classroom. Some days it is our first.",
+        "by": "Year 1 teacher (sample)"
+      }
+    ],
+    "subjects": [
+      "Phonics and early reading",
+      "Mathematics through play",
+      "Understanding the world",
+      "Expressive arts and design",
+      "Music and movement",
+      "French and Hindi songs",
+      "Forest school",
+      "Personal, social and emotional development"
+    ],
+    "wellbeing": "Every morning begins with a welcome circle where each girl is greeted by name. Key adults stay with children through the day, settling-in is unhurried, and we share a short note home each week so families always know the shape of their daughter's days.",
+    "beyond": [
+      "Weekly forest school in the Wild Wood",
+      "Little Chefs in the teaching kitchen",
+      "Story-and-pyjamas evenings",
+      "Swimming from Reception",
+      "Harvest festival and the winter lantern walk"
+    ],
+    "stats": [
+      { "value": "1:8", "label": "adult-to-child ratio" },
+      { "value": "16", "label": "maximum class size" },
+      { "value": "2", "label": "acre garden classroom" }
+    ]
+  },
+  {
+    "slug": "prep",
+    "name": "Prep",
+    "ages": "7–11",
+    "years": "Year 3 to Year 6",
+    "stage": "Key Stage 2",
+    "image": "/images/section-prep.webp",
+    "tagline": "The years when curiosity becomes capability.",
+    "intro": "In Prep, girls build the habits that carry them through school: reading widely, writing with care, reasoning out loud and trying again. Specialist teachers for science, music, languages, art and sport join from Year 3, while a form tutor remains the steady centre of each girl's day.",
+    "quotes": [
+      {
+        "text": "Prep is where girls learn that being wrong is just the first draft of being right.",
+        "by": "Head of Prep (sample)"
+      },
+      {
+        "text": "My daughter now argues with me about the water cycle. I'm told this is progress.",
+        "by": "Parent of a Year 4 pupil (sample)"
+      },
+      {
+        "text": "The best lessons end with more questions than they began with.",
+        "by": "Year 6 teacher (sample)"
+      }
+    ],
+    "subjects": [
+      "English",
+      "Mathematics",
+      "Science",
+      "History and Geography",
+      "French",
+      "Hindi",
+      "Computing",
+      "Art and Design Technology",
+      "Music",
+      "Drama",
+      "Physical Education",
+      "Wellbeing"
+    ],
+    "wellbeing": "Each girl belongs to a form, a house and a buddy pair with an older pupil. Tutors meet every child one-to-one each half-term, and our pastoral team keeps a light, watchful eye on friendships — the thing that matters most to an eight-year-old.",
+    "beyond": [
+      "Junior choir and string ensemble",
+      "Chess, coding and LEGO engineering clubs",
+      "First residential trip in Year 4",
+      "Inter-house sports and the spring swimming gala",
+      "The Year 6 enterprise market"
+    ],
+    "stats": [
+      { "value": "18", "label": "maximum class size" },
+      { "value": "40+", "label": "clubs each week" },
+      { "value": "3", "label": "languages taught" }
+    ]
+  },
+  {
+    "slug": "upper-school",
+    "name": "Upper School",
+    "ages": "11–16",
+    "years": "Year 7 to Year 11",
+    "stage": "Key Stage 3 and IGCSE",
+    "image": "/images/section-upper.webp",
+    "tagline": "Depth, independence, and room to discover what she loves.",
+    "intro": "Upper School widens every horizon. Girls study the full breadth of the curriculum through Key Stage 3 before choosing nine or ten IGCSE subjects in Year 10. Teaching is ambitious and personal: we want girls to master their subjects and also to own their learning — to plan, revise, ask for help and lead.",
+    "quotes": [
+      {
+        "text": "IGCSE gave her a reason to read beyond the syllabus — and the confidence to say so.",
+        "by": "Parent of a Year 11 pupil (sample)"
+      },
+      {
+        "text": "We teach to the top and scaffold for everyone. That's not a slogan; it's a lesson plan.",
+        "by": "Head of Upper School (sample)"
+      },
+      { "text": "Upper School is when the girls start teaching us.", "by": "Head of Science (sample)" }
+    ],
+    "subjects": [
+      "English Language and Literature",
+      "Mathematics and Additional Mathematics",
+      "Biology, Chemistry and Physics",
+      "History",
+      "Geography",
+      "French",
+      "Hindi",
+      "Computer Science",
+      "Economics",
+      "Art and Design",
+      "Music",
+      "Drama",
+      "Physical Education",
+      "Global Perspectives"
+    ],
+    "wellbeing": "Every girl has a tutor who stays with her group across Upper School. A weekly wellbeing curriculum covers sleep, study habits, digital life, relationships and resilience. Our counsellor and school nurse are on site every day, and older girls train as peer listeners.",
+    "beyond": [
+      "Model United Nations and debating",
+      "Horizon Fellowship expeditions from Year 9",
+      "The Atelier design studio",
+      "Orchestra, chamber choir and the school musical",
+      "Fixtures in eight sports against regional schools"
+    ],
+    "stats": [
+      { "value": "9–10", "label": "IGCSE subjects per girl" },
+      { "value": "20", "label": "maximum class size" },
+      { "value": "1:1", "label": "tutor meetings each half-term" }
+    ]
+  },
+  {
+    "slug": "sixth-form",
+    "name": "Sixth Form",
+    "ages": "16–18",
+    "years": "Year 12 and Year 13",
+    "stage": "A Level",
+    "image": "/images/section-sixth.webp",
+    "tagline": "Two years to think like a scholar and act like a leader.",
+    "intro": "Sixth Formers choose three or four A Levels, add an Extended Project of their own design, and take on real leadership across the school. Seminar-sized classes feel more like university than school, and every girl is guided through her next step — in India or abroad — by a dedicated futures adviser.",
+    "quotes": [
+      {
+        "text": "The Extended Project taught me to manage my own time. The A Levels taught me everything else.",
+        "by": "Year 13 pupil (sample)"
+      },
+      {
+        "text": "We treat Sixth Formers as the young adults they are — with high trust and higher expectations.",
+        "by": "Head of Sixth Form (sample)"
+      },
+      {
+        "text": "University applications are a conversation that starts in Year 12, not a panic in Year 13.",
+        "by": "Futures adviser (sample)"
+      }
+    ],
+    "subjects": [
+      "English Literature",
+      "Mathematics and Further Mathematics",
+      "Biology",
+      "Chemistry",
+      "Physics",
+      "Psychology",
+      "Economics",
+      "Business",
+      "History",
+      "Geography",
+      "French",
+      "Computer Science",
+      "Art and Design",
+      "Music",
+      "Extended Project Qualification"
+    ],
+    "wellbeing": "Sixth Formers have their own study centre and common room, a tutor who meets them weekly, and protected time for rest, sport and service. Our counsellor runs sessions on managing pressure and transition, and girls choose a staff mentor in their area of interest.",
+    "beyond": [
+      "Head Girl team and prefect roles",
+      "Leading clubs and teaching younger pupils",
+      "Horizon Fellowship capstone project",
+      "Internship fortnight in Year 12",
+      "University preparation evenings and alumnae talks"
+    ],
+    "stats": [
+      { "value": "8", "label": "average A Level class size" },
+      { "value": "3–4", "label": "A Levels plus EPQ" },
+      { "value": "1", "label": "futures adviser per girl" }
+    ]
+  }
+]

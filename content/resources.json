@@ -1,0 +1,45 @@
+[
+  {
+    "slug": "admission-form",
+    "title": "Admission form",
+    "description": "Paper version of the registration form, for families who prefer it.",
+    "category": "Admissions",
+    "pages": 4
+  },
+  {
+    "slug": "fee-structure",
+    "title": "Fee structure 2026–27",
+    "description": "Full and day boarding fees, instalments and policies. Generated live from the fee engine.",
+    "category": "Admissions",
+    "href": "/api/fees/pdf?boarding=FULL",
+    "pages": 3
+  },
+  {
+    "slug": "health-form",
+    "title": "Health and medical form",
+    "description": "To be completed before your daughter joins. Shared only with the medical centre.",
+    "category": "Joining",
+    "pages": 2
+  },
+  {
+    "slug": "withdrawal-form",
+    "title": "Withdrawal notice form",
+    "description": "Parents can also submit a withdrawal request from the parent portal.",
+    "category": "Current families",
+    "pages": 1
+  },
+  {
+    "slug": "staff-application-form",
+    "title": "Staff application form",
+    "description": "Printable version. We prefer the online form, which saves your progress.",
+    "category": "Careers",
+    "pages": 6
+  },
+  {
+    "slug": "uniform-list",
+    "title": "Uniform and kit list",
+    "description": "What to bring, by section and boarding type.",
+    "category": "Joining",
+    "pages": 2
+  }
+]

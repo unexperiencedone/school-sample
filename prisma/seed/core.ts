@@ -83,9 +83,13 @@ export async function seedAcademics(db: PrismaClient) {
   const curr = await db.academicYear.create({
     data: { name: "2026-27", startDate: utc(2026, 4, 1), endDate: utc(2027, 3, 31), isCurrent: true },
   });
+  const next = await db.academicYear.create({
+    data: { name: "2027-28", startDate: utc(2027, 4, 1), endDate: utc(2028, 3, 31), isCurrent: false },
+  });
   for (const [y, year] of [
     [2025, prev],
     [2026, curr],
+    [2027, next],
   ] as const) {
     await db.term.createMany({
       data: [
@@ -102,5 +106,5 @@ export async function seedAcademics(db: PrismaClient) {
   for (const h of HOUSES) houses.push(await db.house.create({ data: h }));
   const subjects = [];
   for (const [code, name] of SUBJECTS) subjects.push(await db.subject.create({ data: { code, name } }));
-  return { prev, curr, classes, houses, subjects };
+  return { prev, curr, next, classes, houses, subjects };
 }

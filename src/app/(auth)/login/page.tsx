@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { DEMO_USERS } from "@/lib/auth/demo-users";
 import { isDemoMode } from "@/config/school";
 import { LoginForms } from "./login-forms";
@@ -21,17 +22,17 @@ export default async function LoginPage({
   return (
     <>
       <p className="t-eyebrow">Staff, parents & applicants</p>
-      <h1 className="t-h1 text-primary mt-2">Sign in</h1>
+      <h1 className="t-h1 mt-2 text-primary">Sign in</h1>
       {sp.error && (
-        <p role="alert" className="bg-danger-bg text-danger mt-5 rounded-md px-4 py-3 text-sm">
+        <p role="alert" className="mt-5 rounded-md bg-danger-bg px-4 py-3 text-sm text-danger">
           {ERRORS[sp.error] ?? "Sign-in failed. Please try again."}
         </p>
       )}
 
       {showDemo ? (
         <section aria-labelledby="demo-h" className="mt-8">
-          <h2 id="demo-h" className="text-fg text-sm font-semibold">
-            Demo accounts <span className="text-muted font-normal">— one click, no password</span>
+          <h2 id="demo-h" className="text-sm font-semibold text-fg">
+            Demo accounts <span className="font-normal text-muted">— one click, no password</span>
           </h2>
           <ul className="mt-4 grid gap-2">
             {DEMO_USERS.map((d) => (
@@ -41,11 +42,11 @@ export default async function LoginPage({
                   <button
                     type="submit"
                     data-testid={`demo-${d.role.toLowerCase()}`}
-                    className="group border-line bg-elevated hover:border-primary hover:bg-damson-50 flex w-full items-center justify-between rounded-md border px-4 py-3 text-left transition-colors"
+                    className="group flex w-full items-center justify-between rounded-md border border-line bg-elevated px-4 py-3 text-left transition-colors hover:border-primary hover:bg-damson-50"
                   >
                     <span>
-                      <span className="text-fg block font-medium">{d.label}</span>
-                      <span className="text-muted block text-xs">{d.blurb}</span>
+                      <span className="block font-medium text-fg">{d.label}</span>
+                      <span className="block text-xs text-muted">{d.blurb}</span>
                     </span>
                     <span
                       aria-hidden
@@ -58,9 +59,9 @@ export default async function LoginPage({
               </li>
             ))}
           </ul>
-          <a href="/login" className="text-muted mt-6 inline-block text-sm underline">
+          <Link href="/login" className="mt-6 inline-block text-sm text-muted underline">
             Use a real sign-in instead
-          </a>
+          </Link>
         </section>
       ) : (
         <LoginForms callbackUrl={sp.callbackUrl} defaultEmail={sp.email} demo={isDemoMode()} />

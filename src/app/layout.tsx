@@ -1,29 +1,6 @@
 import type { Metadata, Viewport } from "next";
-import localFont from "next/font/local";
-import { Toaster } from "sonner";
 import { school, siteUrl } from "@/config/school";
 import "@/styles/globals.css";
-
-const fraunces = localFont({
-  src: [
-    { path: "./fonts/fraunces-opsz.woff2", style: "normal", weight: "100 900" },
-    { path: "./fonts/fraunces-opsz-italic.woff2", style: "italic", weight: "100 900" },
-  ],
-  variable: "--font-fraunces",
-  display: "swap",
-  preload: true,
-  fallback: ["Georgia", "serif"],
-});
-
-const hanken = localFont({
-  src: [
-    { path: "./fonts/hanken-grotesk.woff2", style: "normal", weight: "100 900" },
-    { path: "./fonts/hanken-grotesk-italic.woff2", style: "italic", weight: "100 900" },
-  ],
-  variable: "--font-hanken",
-  display: "swap",
-  fallback: ["system-ui", "sans-serif"],
-});
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl()),
@@ -43,15 +20,27 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en-IN" className={`${fraunces.variable} ${hanken.variable}`} suppressHydrationWarning>
+    <html lang="en-IN" suppressHydrationWarning>
       <head>
+        {/* Only the upright faces are preloaded; italics load on demand so they never compete with the LCP image. */}
+        <link
+          rel="preload"
+          href="/fonts/fraunces-opsz.woff2"
+          as="font"
+          type="font/woff2"
+          crossOrigin="anonymous"
+        />
+        <link
+          rel="preload"
+          href="/fonts/hanken-grotesk.woff2"
+          as="font"
+          type="font/woff2"
+          crossOrigin="anonymous"
+        />
         {/* Enables progressive scroll-reveal styles only when JS runs. */}
         <script dangerouslySetInnerHTML={{ __html: "document.documentElement.classList.add('js')" }} />
       </head>
-      <body className="min-h-dvh">
-        {children}
-        <Toaster position="bottom-right" toastOptions={{ classNames: { toast: "font-sans" } }} />
-      </body>
+      <body className="min-h-dvh">{children}</body>
     </html>
   );
 }

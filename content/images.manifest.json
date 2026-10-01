@@ -1,0 +1,1363 @@
+{
+  "$comment": "Every image slot used on the site. Run `pnpm images:fetch` to fill from Unsplash/Pexels (keys optional); without keys, designed placeholders are generated.",
+  "slots": [
+    {
+      "slot": "hero-home",
+      "query": "sunlit school building archway courtyard morning",
+      "orientation": "landscape",
+      "minWidth": 2400,
+      "alt": "Morning light across the arched cloister of the main school building",
+      "scene": "arches",
+      "credit": {
+        "photographer": "Aurelia Hall sample build",
+        "source": "Generated",
+        "url": ""
+      },
+      "localPath": "/images/hero-home.webp"
+    },
+    {
+      "slot": "hero-home-mobile",
+      "query": "school archway courtyard",
+      "orientation": "portrait",
+      "minWidth": 1080,
+      "alt": "Morning light across the arched cloister",
+      "scene": "arches",
+      "credit": {
+        "photographer": "Aurelia Hall sample build",
+        "source": "Generated",
+        "url": ""
+      },
+      "localPath": "/images/hero-home-mobile.webp"
+    },
+    {
+      "slot": "feature-virtual-tour",
+      "query": "school campus aerial green hills",
+      "orientation": "landscape",
+      "minWidth": 1200,
+      "alt": "The campus seen from the ridge path",
+      "scene": "landscape",
+      "credit": {
+        "photographer": "Aurelia Hall sample build",
+        "source": "Generated",
+        "url": ""
+      },
+      "localPath": "/images/feature-virtual-tour.webp"
+    },
+    {
+      "slot": "feature-open-morning",
+      "query": "parents visiting school library",
+      "orientation": "landscape",
+      "minWidth": 1200,
+      "alt": "Families exploring the library during an open morning",
+      "scene": "interior",
+      "credit": {
+        "photographer": "Aurelia Hall sample build",
+        "source": "Generated",
+        "url": ""
+      },
+      "localPath": "/images/feature-open-morning.webp"
+    },
+    {
+      "slot": "feature-boarding",
+      "query": "cosy boarding house common room",
+      "orientation": "landscape",
+      "minWidth": 1200,
+      "alt": "A boarding house common room in the evening",
+      "scene": "interior",
+      "credit": {
+        "photographer": "Aurelia Hall sample build",
+        "source": "Generated",
+        "url": ""
+      },
+      "localPath": "/images/feature-boarding.webp"
+    },
+    {
+      "slot": "about-welcome",
+      "query": "school entrance gate garden",
+      "orientation": "landscape",
+      "minWidth": 1800,
+      "alt": "The North Arch entrance in spring",
+      "scene": "arches",
+      "credit": {
+        "photographer": "Aurelia Hall sample build",
+        "source": "Generated",
+        "url": ""
+      },
+      "localPath": "/images/about-welcome.webp"
+    },
+    {
+      "slot": "about-mission",
+      "query": "notebook desk window light",
+      "orientation": "landscape",
+      "minWidth": 1800,
+      "alt": "A notebook open on a desk by the window",
+      "scene": "detail",
+      "credit": {
+        "photographer": "Aurelia Hall sample build",
+        "source": "Generated",
+        "url": ""
+      },
+      "localPath": "/images/about-mission.webp"
+    },
+    {
+      "slot": "about-story",
+      "query": "old stone building heritage",
+      "orientation": "landscape",
+      "minWidth": 1800,
+      "alt": "The original stone hall, restored",
+      "scene": "arches",
+      "credit": {
+        "photographer": "Aurelia Hall sample build",
+        "source": "Generated",
+        "url": ""
+      },
+      "localPath": "/images/about-story.webp"
+    },
+    {
+      "slot": "about-partnerships",
+      "query": "students collaborating workshop",
+      "orientation": "landscape",
+      "minWidth": 1800,
+      "alt": "Hands at work on a shared project",
+      "scene": "detail",
+      "credit": {
+        "photographer": "Aurelia Hall sample build",
+        "source": "Generated",
+        "url": ""
+      },
+      "localPath": "/images/about-partnerships.webp"
+    },
+    {
+      "slot": "about-excellence",
+      "query": "science lab glassware",
+      "orientation": "landscape",
+      "minWidth": 1800,
+      "alt": "Glassware ready for a chemistry practical",
+      "scene": "detail",
+      "credit": {
+        "photographer": "Aurelia Hall sample build",
+        "source": "Generated",
+        "url": ""
+      },
+      "localPath": "/images/about-excellence.webp"
+    },
+    {
+      "slot": "about-founding-principal",
+      "query": "study bookshelf leather chair",
+      "orientation": "landscape",
+      "minWidth": 1800,
+      "alt": "The Principal's study",
+      "scene": "interior",
+      "credit": {
+        "photographer": "Aurelia Hall sample build",
+        "source": "Generated",
+        "url": ""
+      },
+      "localPath": "/images/about-founding-principal.webp"
+    },
+    {
+      "slot": "about-all-girls",
+      "query": "girls team huddle from behind",
+      "orientation": "landscape",
+      "minWidth": 1800,
+      "alt": "A team huddle before a match",
+      "scene": "sports",
+      "credit": {
+        "photographer": "Aurelia Hall sample build",
+        "source": "Generated",
+        "url": ""
+      },
+      "localPath": "/images/about-all-girls.webp"
+    },
+    {
+      "slot": "about-recognition",
+      "query": "trophy shelf school",
+      "orientation": "landscape",
+      "minWidth": 1800,
+      "alt": "Ribbons and trophies on a shelf",
+      "scene": "detail",
+      "credit": {
+        "photographer": "Aurelia Hall sample build",
+        "source": "Generated",
+        "url": ""
+      },
+      "localPath": "/images/about-recognition.webp"
+    },
+    {
+      "slot": "about-why-city",
+      "query": "misty hills sunrise india",
+      "orientation": "landscape",
+      "minWidth": 1800,
+      "alt": "Morning mist over the nearby hills",
+      "scene": "landscape",
+      "credit": {
+        "photographer": "Aurelia Hall sample build",
+        "source": "Generated",
+        "url": ""
+      },
+      "localPath": "/images/about-why-city.webp"
+    },
+    {
+      "slot": "about-alumnae",
+      "query": "graduation caps thrown sky",
+      "orientation": "landscape",
+      "minWidth": 1800,
+      "alt": "Graduation caps against a blue sky",
+      "scene": "landscape",
+      "credit": {
+        "photographer": "Aurelia Hall sample build",
+        "source": "Generated",
+        "url": ""
+      },
+      "localPath": "/images/about-alumnae.webp"
+    },
+    {
+      "slot": "admissions",
+      "query": "school corridor light",
+      "orientation": "landscape",
+      "minWidth": 1800,
+      "alt": "A corridor full of afternoon light",
+      "scene": "arches",
+      "credit": {
+        "photographer": "Aurelia Hall sample build",
+        "source": "Generated",
+        "url": ""
+      },
+      "localPath": "/images/admissions.webp"
+    },
+    {
+      "slot": "scholarships",
+      "query": "library desk lamp books",
+      "orientation": "landscape",
+      "minWidth": 1800,
+      "alt": "A lamp-lit desk in the library",
+      "scene": "interior",
+      "credit": {
+        "photographer": "Aurelia Hall sample build",
+        "source": "Generated",
+        "url": ""
+      },
+      "localPath": "/images/scholarships.webp"
+    },
+    {
+      "slot": "fees",
+      "query": "calculator notebook pen desk",
+      "orientation": "landscape",
+      "minWidth": 1800,
+      "alt": "Paperwork on a desk",
+      "scene": "detail",
+      "credit": {
+        "photographer": "Aurelia Hall sample build",
+        "source": "Generated",
+        "url": ""
+      },
+      "localPath": "/images/fees.webp"
+    },
+    {
+      "slot": "curriculum",
+      "query": "classroom chalkboard maths",
+      "orientation": "landscape",
+      "minWidth": 1800,
+      "alt": "A chalkboard covered in working",
+      "scene": "interior",
+      "credit": {
+        "photographer": "Aurelia Hall sample build",
+        "source": "Generated",
+        "url": ""
+      },
+      "localPath": "/images/curriculum.webp"
+    },
+    {
+      "slot": "why-igcse",
+      "query": "exam hall desks",
+      "orientation": "landscape",
+      "minWidth": 1800,
+      "alt": "Rows of desks in the examination hall",
+      "scene": "interior",
+      "credit": {
+        "photographer": "Aurelia Hall sample build",
+        "source": "Generated",
+        "url": ""
+      },
+      "localPath": "/images/why-igcse.webp"
+    },
+    {
+      "slot": "section-pre-prep",
+      "query": "children painting hands colourful",
+      "orientation": "landscape",
+      "minWidth": 1800,
+      "alt": "Small hands and bright paint",
+      "scene": "detail",
+      "credit": {
+        "photographer": "Aurelia Hall sample build",
+        "source": "Generated",
+        "url": ""
+      },
+      "localPath": "/images/section-pre-prep.webp"
+    },
+    {
+      "slot": "section-prep",
+      "query": "children reading books outdoors",
+      "orientation": "landscape",
+      "minWidth": 1800,
+      "alt": "Reading under the trees",
+      "scene": "landscape",
+      "credit": {
+        "photographer": "Aurelia Hall sample build",
+        "source": "Generated",
+        "url": ""
+      },
+      "localPath": "/images/section-prep.webp"
+    },
+    {
+      "slot": "section-upper",
+      "query": "teenage students lab experiment",
+      "orientation": "landscape",
+      "minWidth": 1800,
+      "alt": "A physics experiment in progress",
+      "scene": "detail",
+      "credit": {
+        "photographer": "Aurelia Hall sample build",
+        "source": "Generated",
+        "url": ""
+      },
+      "localPath": "/images/section-upper.webp"
+    },
+    {
+      "slot": "section-sixth",
+      "query": "students studying library laptops",
+      "orientation": "landscape",
+      "minWidth": 1800,
+      "alt": "Sixth Formers in the study centre",
+      "scene": "interior",
+      "credit": {
+        "photographer": "Aurelia Hall sample build",
+        "source": "Generated",
+        "url": ""
+      },
+      "localPath": "/images/section-sixth.webp"
+    },
+    {
+      "slot": "boarding-full",
+      "query": "dormitory bedroom neat window",
+      "orientation": "landscape",
+      "minWidth": 1800,
+      "alt": "A boarding bedroom with a view of the hills",
+      "scene": "interior",
+      "credit": {
+        "photographer": "Aurelia Hall sample build",
+        "source": "Generated",
+        "url": ""
+      },
+      "localPath": "/images/boarding-full.webp"
+    },
+    {
+      "slot": "boarding-flexi",
+      "query": "school bag shoes hallway",
+      "orientation": "landscape",
+      "minWidth": 1800,
+      "alt": "A weekend bag by the door",
+      "scene": "detail",
+      "credit": {
+        "photographer": "Aurelia Hall sample build",
+        "source": "Generated",
+        "url": ""
+      },
+      "localPath": "/images/boarding-flexi.webp"
+    },
+    {
+      "slot": "boarding-day",
+      "query": "school bus morning road",
+      "orientation": "landscape",
+      "minWidth": 1800,
+      "alt": "The morning bus on the ridge road",
+      "scene": "landscape",
+      "credit": {
+        "photographer": "Aurelia Hall sample build",
+        "source": "Generated",
+        "url": ""
+      },
+      "localPath": "/images/boarding-day.webp"
+    },
+    {
+      "slot": "programme-atelier",
+      "query": "design studio sketches prototypes",
+      "orientation": "landscape",
+      "minWidth": 1800,
+      "alt": "Prototypes and sketches in the Atelier",
+      "scene": "detail",
+      "credit": {
+        "photographer": "Aurelia Hall sample build",
+        "source": "Generated",
+        "url": ""
+      },
+      "localPath": "/images/programme-atelier.webp"
+    },
+    {
+      "slot": "programme-horizon",
+      "query": "hiking trail mountains group",
+      "orientation": "landscape",
+      "minWidth": 1800,
+      "alt": "An expedition trail above the clouds",
+      "scene": "landscape",
+      "credit": {
+        "photographer": "Aurelia Hall sample build",
+        "source": "Generated",
+        "url": ""
+      },
+      "localPath": "/images/programme-horizon.webp"
+    },
+    {
+      "slot": "careers",
+      "query": "teacher desk classroom empty",
+      "orientation": "landscape",
+      "minWidth": 1800,
+      "alt": "A classroom ready for the day",
+      "scene": "interior",
+      "credit": {
+        "photographer": "Aurelia Hall sample build",
+        "source": "Generated",
+        "url": ""
+      },
+      "localPath": "/images/careers.webp"
+    },
+    {
+      "slot": "careers-ethos",
+      "query": "teacher whiteboard writing",
+      "orientation": "landscape",
+      "minWidth": 1800,
+      "alt": "Notes on a whiteboard",
+      "scene": "detail",
+      "credit": {
+        "photographer": "Aurelia Hall sample build",
+        "source": "Generated",
+        "url": ""
+      },
+      "localPath": "/images/careers-ethos.webp"
+    },
+    {
+      "slot": "careers-living",
+      "query": "indian hill town street",
+      "orientation": "landscape",
+      "minWidth": 1800,
+      "alt": "A hill-town street near campus",
+      "scene": "landscape",
+      "credit": {
+        "photographer": "Aurelia Hall sample build",
+        "source": "Generated",
+        "url": ""
+      },
+      "localPath": "/images/careers-living.webp"
+    },
+    {
+      "slot": "careers-care",
+      "query": "cups of tea staff room",
+      "orientation": "landscape",
+      "minWidth": 1800,
+      "alt": "Tea in the staff common room",
+      "scene": "detail",
+      "credit": {
+        "photographer": "Aurelia Hall sample build",
+        "source": "Generated",
+        "url": ""
+      },
+      "localPath": "/images/careers-care.webp"
+    },
+    {
+      "slot": "campus-amenities",
+      "query": "modern school building glass",
+      "orientation": "landscape",
+      "minWidth": 1800,
+      "alt": "The glasshouse science wing",
+      "scene": "arches",
+      "credit": {
+        "photographer": "Aurelia Hall sample build",
+        "source": "Generated",
+        "url": ""
+      },
+      "localPath": "/images/campus-amenities.webp"
+    },
+    {
+      "slot": "campus-sports",
+      "query": "running track lanes",
+      "orientation": "landscape",
+      "minWidth": 1800,
+      "alt": "Lanes on the athletics track",
+      "scene": "sports",
+      "credit": {
+        "photographer": "Aurelia Hall sample build",
+        "source": "Generated",
+        "url": ""
+      },
+      "localPath": "/images/campus-sports.webp"
+    },
+    {
+      "slot": "campus-library",
+      "query": "library shelves tall",
+      "orientation": "landscape",
+      "minWidth": 1800,
+      "alt": "Tall shelves in the library",
+      "scene": "interior",
+      "credit": {
+        "photographer": "Aurelia Hall sample build",
+        "source": "Generated",
+        "url": ""
+      },
+      "localPath": "/images/campus-library.webp"
+    },
+    {
+      "slot": "campus-transport",
+      "query": "school bus",
+      "orientation": "landscape",
+      "minWidth": 1800,
+      "alt": "A school bus at the gate",
+      "scene": "landscape",
+      "credit": {
+        "photographer": "Aurelia Hall sample build",
+        "source": "Generated",
+        "url": ""
+      },
+      "localPath": "/images/campus-transport.webp"
+    },
+    {
+      "slot": "contact",
+      "query": "reception desk flowers",
+      "orientation": "landscape",
+      "minWidth": 1800,
+      "alt": "Flowers at the reception desk",
+      "scene": "interior",
+      "credit": {
+        "photographer": "Aurelia Hall sample build",
+        "source": "Generated",
+        "url": ""
+      },
+      "localPath": "/images/contact.webp"
+    },
+    {
+      "slot": "events",
+      "query": "auditorium stage lights",
+      "orientation": "landscape",
+      "minWidth": 1800,
+      "alt": "The auditorium stage before a concert",
+      "scene": "interior",
+      "credit": {
+        "photographer": "Aurelia Hall sample build",
+        "source": "Generated",
+        "url": ""
+      },
+      "localPath": "/images/events.webp"
+    },
+    {
+      "slot": "blog",
+      "query": "open book coffee",
+      "orientation": "landscape",
+      "minWidth": 1800,
+      "alt": "An open book and a cup of coffee",
+      "scene": "detail",
+      "credit": {
+        "photographer": "Aurelia Hall sample build",
+        "source": "Generated",
+        "url": ""
+      },
+      "localPath": "/images/blog.webp"
+    },
+    {
+      "slot": "resources",
+      "query": "stack of papers folders",
+      "orientation": "landscape",
+      "minWidth": 1800,
+      "alt": "Forms and folders",
+      "scene": "detail",
+      "credit": {
+        "photographer": "Aurelia Hall sample build",
+        "source": "Generated",
+        "url": ""
+      },
+      "localPath": "/images/resources.webp"
+    },
+    {
+      "slot": "register",
+      "query": "pen signing form",
+      "orientation": "landscape",
+      "minWidth": 1800,
+      "alt": "A pen resting on a form",
+      "scene": "detail",
+      "credit": {
+        "photographer": "Aurelia Hall sample build",
+        "source": "Generated",
+        "url": ""
+      },
+      "localPath": "/images/register.webp"
+    },
+    {
+      "slot": "virtual-tour",
+      "query": "panorama campus",
+      "orientation": "landscape",
+      "minWidth": 1800,
+      "alt": "The campus at golden hour",
+      "scene": "landscape",
+      "credit": {
+        "photographer": "Aurelia Hall sample build",
+        "source": "Generated",
+        "url": ""
+      },
+      "localPath": "/images/virtual-tour.webp"
+    },
+    {
+      "slot": "faculty",
+      "query": "teacher reading in library",
+      "orientation": "landscape",
+      "minWidth": 1800,
+      "alt": "A teacher reading in the library",
+      "scene": "interior",
+      "credit": {
+        "photographer": "Aurelia Hall sample build",
+        "source": "Generated",
+        "url": ""
+      },
+      "localPath": "/images/faculty.webp"
+    },
+    {
+      "slot": "tour-booking",
+      "query": "garden path school",
+      "orientation": "landscape",
+      "minWidth": 1800,
+      "alt": "A garden path towards the main hall",
+      "scene": "landscape",
+      "credit": {
+        "photographer": "Aurelia Hall sample build",
+        "source": "Generated",
+        "url": ""
+      },
+      "localPath": "/images/tour-booking.webp"
+    },
+    {
+      "slot": "sport-athletics",
+      "query": "running track spikes",
+      "orientation": "landscape",
+      "minWidth": 1400,
+      "alt": "Athletics at Aurelia Hall (illustrative)",
+      "scene": "sports",
+      "credit": {
+        "photographer": "Aurelia Hall sample build",
+        "source": "Generated",
+        "url": ""
+      },
+      "localPath": "/images/sport-athletics.webp"
+    },
+    {
+      "slot": "sport-swimming",
+      "query": "swimming pool lanes",
+      "orientation": "landscape",
+      "minWidth": 1400,
+      "alt": "Swimming at Aurelia Hall (illustrative)",
+      "scene": "sports",
+      "credit": {
+        "photographer": "Aurelia Hall sample build",
+        "source": "Generated",
+        "url": ""
+      },
+      "localPath": "/images/sport-swimming.webp"
+    },
+    {
+      "slot": "sport-tennis",
+      "query": "tennis racket court",
+      "orientation": "landscape",
+      "minWidth": 1400,
+      "alt": "Tennis at Aurelia Hall (illustrative)",
+      "scene": "sports",
+      "credit": {
+        "photographer": "Aurelia Hall sample build",
+        "source": "Generated",
+        "url": ""
+      },
+      "localPath": "/images/sport-tennis.webp"
+    },
+    {
+      "slot": "sport-netball",
+      "query": "netball hoop",
+      "orientation": "landscape",
+      "minWidth": 1400,
+      "alt": "Netball at Aurelia Hall (illustrative)",
+      "scene": "sports",
+      "credit": {
+        "photographer": "Aurelia Hall sample build",
+        "source": "Generated",
+        "url": ""
+      },
+      "localPath": "/images/sport-netball.webp"
+    },
+    {
+      "slot": "sport-hockey",
+      "query": "hockey stick ball turf",
+      "orientation": "landscape",
+      "minWidth": 1400,
+      "alt": "Hockey at Aurelia Hall (illustrative)",
+      "scene": "sports",
+      "credit": {
+        "photographer": "Aurelia Hall sample build",
+        "source": "Generated",
+        "url": ""
+      },
+      "localPath": "/images/sport-hockey.webp"
+    },
+    {
+      "slot": "sport-football",
+      "query": "football pitch goal",
+      "orientation": "landscape",
+      "minWidth": 1400,
+      "alt": "Football at Aurelia Hall (illustrative)",
+      "scene": "sports",
+      "credit": {
+        "photographer": "Aurelia Hall sample build",
+        "source": "Generated",
+        "url": ""
+      },
+      "localPath": "/images/sport-football.webp"
+    },
+    {
+      "slot": "sport-badminton",
+      "query": "badminton shuttlecock",
+      "orientation": "landscape",
+      "minWidth": 1400,
+      "alt": "Badminton at Aurelia Hall (illustrative)",
+      "scene": "sports",
+      "credit": {
+        "photographer": "Aurelia Hall sample build",
+        "source": "Generated",
+        "url": ""
+      },
+      "localPath": "/images/sport-badminton.webp"
+    },
+    {
+      "slot": "sport-basketball",
+      "query": "basketball hoop outdoor",
+      "orientation": "landscape",
+      "minWidth": 1400,
+      "alt": "Basketball at Aurelia Hall (illustrative)",
+      "scene": "sports",
+      "credit": {
+        "photographer": "Aurelia Hall sample build",
+        "source": "Generated",
+        "url": ""
+      },
+      "localPath": "/images/sport-basketball.webp"
+    },
+    {
+      "slot": "sport-equestrian",
+      "query": "horse riding arena",
+      "orientation": "landscape",
+      "minWidth": 1400,
+      "alt": "Equestrian at Aurelia Hall (illustrative)",
+      "scene": "sports",
+      "credit": {
+        "photographer": "Aurelia Hall sample build",
+        "source": "Generated",
+        "url": ""
+      },
+      "localPath": "/images/sport-equestrian.webp"
+    },
+    {
+      "slot": "sport-climbing",
+      "query": "indoor climbing wall",
+      "orientation": "landscape",
+      "minWidth": 1400,
+      "alt": "Climbing at Aurelia Hall (illustrative)",
+      "scene": "sports",
+      "credit": {
+        "photographer": "Aurelia Hall sample build",
+        "source": "Generated",
+        "url": ""
+      },
+      "localPath": "/images/sport-climbing.webp"
+    },
+    {
+      "slot": "sport-dance",
+      "query": "ballet shoes studio",
+      "orientation": "landscape",
+      "minWidth": 1400,
+      "alt": "Dance at Aurelia Hall (illustrative)",
+      "scene": "sports",
+      "credit": {
+        "photographer": "Aurelia Hall sample build",
+        "source": "Generated",
+        "url": ""
+      },
+      "localPath": "/images/sport-dance.webp"
+    },
+    {
+      "slot": "sport-yoga",
+      "query": "yoga mats sunrise",
+      "orientation": "landscape",
+      "minWidth": 1400,
+      "alt": "Yoga at Aurelia Hall (illustrative)",
+      "scene": "sports",
+      "credit": {
+        "photographer": "Aurelia Hall sample build",
+        "source": "Generated",
+        "url": ""
+      },
+      "localPath": "/images/sport-yoga.webp"
+    },
+    {
+      "slot": "blog-1",
+      "query": "open book reading nook",
+      "orientation": "landscape",
+      "minWidth": 1400,
+      "alt": "A reading nook",
+      "scene": "interior",
+      "credit": {
+        "photographer": "Aurelia Hall sample build",
+        "source": "Generated",
+        "url": ""
+      },
+      "localPath": "/images/blog-1.webp"
+    },
+    {
+      "slot": "blog-2",
+      "query": "telescope night sky",
+      "orientation": "landscape",
+      "minWidth": 1400,
+      "alt": "A telescope under the night sky",
+      "scene": "landscape",
+      "credit": {
+        "photographer": "Aurelia Hall sample build",
+        "source": "Generated",
+        "url": ""
+      },
+      "localPath": "/images/blog-2.webp"
+    },
+    {
+      "slot": "blog-3",
+      "query": "pottery wheel clay hands",
+      "orientation": "landscape",
+      "minWidth": 1400,
+      "alt": "Clay on the pottery wheel",
+      "scene": "detail",
+      "credit": {
+        "photographer": "Aurelia Hall sample build",
+        "source": "Generated",
+        "url": ""
+      },
+      "localPath": "/images/blog-3.webp"
+    },
+    {
+      "slot": "blog-4",
+      "query": "forest trail sunlight",
+      "orientation": "landscape",
+      "minWidth": 1400,
+      "alt": "Sunlight on a forest trail",
+      "scene": "landscape",
+      "credit": {
+        "photographer": "Aurelia Hall sample build",
+        "source": "Generated",
+        "url": ""
+      },
+      "localPath": "/images/blog-4.webp"
+    },
+    {
+      "slot": "blog-5",
+      "query": "violin sheet music",
+      "orientation": "landscape",
+      "minWidth": 1400,
+      "alt": "A violin resting on sheet music",
+      "scene": "detail",
+      "credit": {
+        "photographer": "Aurelia Hall sample build",
+        "source": "Generated",
+        "url": ""
+      },
+      "localPath": "/images/blog-5.webp"
+    },
+    {
+      "slot": "blog-6",
+      "query": "vegetable garden school",
+      "orientation": "landscape",
+      "minWidth": 1400,
+      "alt": "Raised beds in the kitchen garden",
+      "scene": "landscape",
+      "credit": {
+        "photographer": "Aurelia Hall sample build",
+        "source": "Generated",
+        "url": ""
+      },
+      "localPath": "/images/blog-6.webp"
+    },
+    {
+      "slot": "gallery-cloister",
+      "query": "stone cloister arches",
+      "orientation": "landscape",
+      "minWidth": 1400,
+      "alt": "The cloister",
+      "scene": "arches",
+      "credit": {
+        "photographer": "Aurelia Hall sample build",
+        "source": "Generated",
+        "url": ""
+      },
+      "localPath": "/images/gallery-cloister.webp"
+    },
+    {
+      "slot": "gallery-field",
+      "query": "green playing field",
+      "orientation": "landscape",
+      "minWidth": 1400,
+      "alt": "The Long Field",
+      "scene": "sports",
+      "credit": {
+        "photographer": "Aurelia Hall sample build",
+        "source": "Generated",
+        "url": ""
+      },
+      "localPath": "/images/gallery-field.webp"
+    },
+    {
+      "slot": "gallery-library",
+      "query": "library reading room",
+      "orientation": "landscape",
+      "minWidth": 1400,
+      "alt": "The reading room",
+      "scene": "interior",
+      "credit": {
+        "photographer": "Aurelia Hall sample build",
+        "source": "Generated",
+        "url": ""
+      },
+      "localPath": "/images/gallery-library.webp"
+    },
+    {
+      "slot": "gallery-studio",
+      "query": "art studio easels",
+      "orientation": "landscape",
+      "minWidth": 1400,
+      "alt": "The art studio",
+      "scene": "interior",
+      "credit": {
+        "photographer": "Aurelia Hall sample build",
+        "source": "Generated",
+        "url": ""
+      },
+      "localPath": "/images/gallery-studio.webp"
+    },
+    {
+      "slot": "gallery-lab",
+      "query": "science lab",
+      "orientation": "landscape",
+      "minWidth": 1400,
+      "alt": "The Glasshouse lab",
+      "scene": "detail",
+      "credit": {
+        "photographer": "Aurelia Hall sample build",
+        "source": "Generated",
+        "url": ""
+      },
+      "localPath": "/images/gallery-lab.webp"
+    },
+    {
+      "slot": "gallery-house",
+      "query": "boarding house exterior",
+      "orientation": "landscape",
+      "minWidth": 1400,
+      "alt": "Banyan House",
+      "scene": "arches",
+      "credit": {
+        "photographer": "Aurelia Hall sample build",
+        "source": "Generated",
+        "url": ""
+      },
+      "localPath": "/images/gallery-house.webp"
+    },
+    {
+      "slot": "gallery-garden",
+      "query": "school garden flowers",
+      "orientation": "landscape",
+      "minWidth": 1400,
+      "alt": "The kitchen garden",
+      "scene": "landscape",
+      "credit": {
+        "photographer": "Aurelia Hall sample build",
+        "source": "Generated",
+        "url": ""
+      },
+      "localPath": "/images/gallery-garden.webp"
+    },
+    {
+      "slot": "gallery-stage",
+      "query": "theatre stage curtains",
+      "orientation": "landscape",
+      "minWidth": 1400,
+      "alt": "The Arch Theatre",
+      "scene": "interior",
+      "credit": {
+        "photographer": "Aurelia Hall sample build",
+        "source": "Generated",
+        "url": ""
+      },
+      "localPath": "/images/gallery-stage.webp"
+    },
+    {
+      "slot": "portrait-1",
+      "query": "illustrated avatar",
+      "orientation": "portrait",
+      "minWidth": 600,
+      "alt": "Illustrated portrait (sample faculty member)",
+      "scene": "avatar",
+      "credit": {
+        "photographer": "Aurelia Hall sample build",
+        "source": "Generated",
+        "url": ""
+      },
+      "localPath": "/images/portrait-1.webp"
+    },
+    {
+      "slot": "portrait-2",
+      "query": "illustrated avatar",
+      "orientation": "portrait",
+      "minWidth": 600,
+      "alt": "Illustrated portrait (sample faculty member)",
+      "scene": "avatar",
+      "credit": {
+        "photographer": "Aurelia Hall sample build",
+        "source": "Generated",
+        "url": ""
+      },
+      "localPath": "/images/portrait-2.webp"
+    },
+    {
+      "slot": "portrait-3",
+      "query": "illustrated avatar",
+      "orientation": "portrait",
+      "minWidth": 600,
+      "alt": "Illustrated portrait (sample faculty member)",
+      "scene": "avatar",
+      "credit": {
+        "photographer": "Aurelia Hall sample build",
+        "source": "Generated",
+        "url": ""
+      },
+      "localPath": "/images/portrait-3.webp"
+    },
+    {
+      "slot": "portrait-4",
+      "query": "illustrated avatar",
+      "orientation": "portrait",
+      "minWidth": 600,
+      "alt": "Illustrated portrait (sample faculty member)",
+      "scene": "avatar",
+      "credit": {
+        "photographer": "Aurelia Hall sample build",
+        "source": "Generated",
+        "url": ""
+      },
+      "localPath": "/images/portrait-4.webp"
+    },
+    {
+      "slot": "portrait-5",
+      "query": "illustrated avatar",
+      "orientation": "portrait",
+      "minWidth": 600,
+      "alt": "Illustrated portrait (sample faculty member)",
+      "scene": "avatar",
+      "credit": {
+        "photographer": "Aurelia Hall sample build",
+        "source": "Generated",
+        "url": ""
+      },
+      "localPath": "/images/portrait-5.webp"
+    },
+    {
+      "slot": "portrait-6",
+      "query": "illustrated avatar",
+      "orientation": "portrait",
+      "minWidth": 600,
+      "alt": "Illustrated portrait (sample faculty member)",
+      "scene": "avatar",
+      "credit": {
+        "photographer": "Aurelia Hall sample build",
+        "source": "Generated",
+        "url": ""
+      },
+      "localPath": "/images/portrait-6.webp"
+    },
+    {
+      "slot": "portrait-7",
+      "query": "illustrated avatar",
+      "orientation": "portrait",
+      "minWidth": 600,
+      "alt": "Illustrated portrait (sample faculty member)",
+      "scene": "avatar",
+      "credit": {
+        "photographer": "Aurelia Hall sample build",
+        "source": "Generated",
+        "url": ""
+      },
+      "localPath": "/images/portrait-7.webp"
+    },
+    {
+      "slot": "portrait-8",
+      "query": "illustrated avatar",
+      "orientation": "portrait",
+      "minWidth": 600,
+      "alt": "Illustrated portrait (sample faculty member)",
+      "scene": "avatar",
+      "credit": {
+        "photographer": "Aurelia Hall sample build",
+        "source": "Generated",
+        "url": ""
+      },
+      "localPath": "/images/portrait-8.webp"
+    },
+    {
+      "slot": "portrait-9",
+      "query": "illustrated avatar",
+      "orientation": "portrait",
+      "minWidth": 600,
+      "alt": "Illustrated portrait (sample faculty member)",
+      "scene": "avatar",
+      "credit": {
+        "photographer": "Aurelia Hall sample build",
+        "source": "Generated",
+        "url": ""
+      },
+      "localPath": "/images/portrait-9.webp"
+    },
+    {
+      "slot": "portrait-10",
+      "query": "illustrated avatar",
+      "orientation": "portrait",
+      "minWidth": 600,
+      "alt": "Illustrated portrait (sample faculty member)",
+      "scene": "avatar",
+      "credit": {
+        "photographer": "Aurelia Hall sample build",
+        "source": "Generated",
+        "url": ""
+      },
+      "localPath": "/images/portrait-10.webp"
+    },
+    {
+      "slot": "portrait-11",
+      "query": "illustrated avatar",
+      "orientation": "portrait",
+      "minWidth": 600,
+      "alt": "Illustrated portrait (sample faculty member)",
+      "scene": "avatar",
+      "credit": {
+        "photographer": "Aurelia Hall sample build",
+        "source": "Generated",
+        "url": ""
+      },
+      "localPath": "/images/portrait-11.webp"
+    },
+    {
+      "slot": "portrait-12",
+      "query": "illustrated avatar",
+      "orientation": "portrait",
+      "minWidth": 600,
+      "alt": "Illustrated portrait (sample faculty member)",
+      "scene": "avatar",
+      "credit": {
+        "photographer": "Aurelia Hall sample build",
+        "source": "Generated",
+        "url": ""
+      },
+      "localPath": "/images/portrait-12.webp"
+    },
+    {
+      "slot": "pano-arch",
+      "query": "equirectangular 360 panorama",
+      "orientation": "panorama",
+      "minWidth": 4096,
+      "alt": "360° view: The North Arch courtyard (placeholder panorama)",
+      "scene": "panorama",
+      "credit": {
+        "photographer": "Aurelia Hall sample build",
+        "source": "Generated",
+        "url": ""
+      },
+      "localPath": "/images/pano-arch.webp"
+    },
+    {
+      "slot": "pano-glasshouse",
+      "query": "equirectangular 360 panorama",
+      "orientation": "panorama",
+      "minWidth": 4096,
+      "alt": "360° view: Inside the Glasshouse science wing (placeholder panorama)",
+      "scene": "panorama",
+      "credit": {
+        "photographer": "Aurelia Hall sample build",
+        "source": "Generated",
+        "url": ""
+      },
+      "localPath": "/images/pano-glasshouse.webp"
+    },
+    {
+      "slot": "pano-library",
+      "query": "equirectangular 360 panorama",
+      "orientation": "panorama",
+      "minWidth": 4096,
+      "alt": "360° view: The library reading room (placeholder panorama)",
+      "scene": "panorama",
+      "credit": {
+        "photographer": "Aurelia Hall sample build",
+        "source": "Generated",
+        "url": ""
+      },
+      "localPath": "/images/pano-library.webp"
+    },
+    {
+      "slot": "pano-field",
+      "query": "equirectangular 360 panorama",
+      "orientation": "panorama",
+      "minWidth": 4096,
+      "alt": "360° view: The Long Field at dusk (placeholder panorama)",
+      "scene": "panorama",
+      "credit": {
+        "photographer": "Aurelia Hall sample build",
+        "source": "Generated",
+        "url": ""
+      },
+      "localPath": "/images/pano-field.webp"
+    },
+    {
+      "slot": "map-placeholder",
+      "query": "map",
+      "orientation": "landscape",
+      "minWidth": 1400,
+      "alt": "Illustrated map of the campus surroundings (placeholder)",
+      "scene": "map",
+      "credit": {
+        "photographer": "Aurelia Hall sample build",
+        "source": "Generated",
+        "url": ""
+      },
+      "localPath": "/images/map-placeholder.webp"
+    },
+    {
+      "slot": "og-default",
+      "query": "school",
+      "orientation": "landscape",
+      "minWidth": 1200,
+      "alt": "Aurelia Hall School",
+      "scene": "arches",
+      "credit": {
+        "photographer": "Aurelia Hall sample build",
+        "source": "Generated",
+        "url": ""
+      },
+      "localPath": "/images/og-default.webp"
+    },
+    {
+      "slot": "herovideo-01",
+      "query": "school arch corridor sunrise",
+      "orientation": "video",
+      "minWidth": 1920,
+      "alt": "Sunrise through the cloister arches",
+      "scene": "arches",
+      "credit": {
+        "photographer": "Aurelia Hall sample build",
+        "source": "Generated",
+        "url": ""
+      },
+      "localPath": "/herovideo/frame-01.jpg"
+    },
+    {
+      "slot": "herovideo-02",
+      "query": "girls walking school campus from behind",
+      "orientation": "video",
+      "minWidth": 1920,
+      "alt": "Pupils walking to morning assembly (seen from behind)",
+      "scene": "landscape",
+      "credit": {
+        "photographer": "Aurelia Hall sample build",
+        "source": "Generated",
+        "url": ""
+      },
+      "localPath": "/herovideo/frame-02.jpg"
+    },
+    {
+      "slot": "herovideo-03",
+      "query": "library reading room sunlight",
+      "orientation": "video",
+      "minWidth": 1920,
+      "alt": "Sunlight in the library reading room",
+      "scene": "interior",
+      "credit": {
+        "photographer": "Aurelia Hall sample build",
+        "source": "Generated",
+        "url": ""
+      },
+      "localPath": "/herovideo/frame-03.jpg"
+    },
+    {
+      "slot": "herovideo-04",
+      "query": "science lab glassware students hands",
+      "orientation": "video",
+      "minWidth": 1920,
+      "alt": "Hands at work in the science lab",
+      "scene": "detail",
+      "credit": {
+        "photographer": "Aurelia Hall sample build",
+        "source": "Generated",
+        "url": ""
+      },
+      "localPath": "/herovideo/frame-04.jpg"
+    },
+    {
+      "slot": "herovideo-05",
+      "query": "hockey field morning mist",
+      "orientation": "video",
+      "minWidth": 1920,
+      "alt": "Morning mist over the playing fields",
+      "scene": "sports",
+      "credit": {
+        "photographer": "Aurelia Hall sample build",
+        "source": "Generated",
+        "url": ""
+      },
+      "localPath": "/herovideo/frame-05.jpg"
+    },
+    {
+      "slot": "herovideo-06",
+      "query": "art studio paint brushes easel",
+      "orientation": "video",
+      "minWidth": 1920,
+      "alt": "Brushes and easels in the art studio",
+      "scene": "detail",
+      "credit": {
+        "photographer": "Aurelia Hall sample build",
+        "source": "Generated",
+        "url": ""
+      },
+      "localPath": "/herovideo/frame-06.jpg"
+    },
+    {
+      "slot": "herovideo-07",
+      "query": "hills sunset campus",
+      "orientation": "video",
+      "minWidth": 1920,
+      "alt": "Golden hour over the hills behind campus",
+      "scene": "landscape",
+      "credit": {
+        "photographer": "Aurelia Hall sample build",
+        "source": "Generated",
+        "url": ""
+      },
+      "localPath": "/herovideo/frame-07.jpg"
+    },
+    {
+      "slot": "herovideo-08",
+      "query": "school building archway dusk",
+      "orientation": "video",
+      "minWidth": 1920,
+      "alt": "The North Arch at dusk",
+      "scene": "arches",
+      "credit": {
+        "photographer": "Aurelia Hall sample build",
+        "source": "Generated",
+        "url": ""
+      },
+      "localPath": "/herovideo/frame-08.jpg"
+    }
+  ]
+}

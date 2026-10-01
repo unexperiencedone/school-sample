@@ -10,7 +10,7 @@ import type { CaptchaAdapter, CaptchaChallenge } from "./types";
 const ALPHABET = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"; // no 0/O/1/I
 const TTL = 10 * 60;
 
-function answerHash(answer: string, nonce: string): string {
+export function answerHash(answer: string, nonce: string): string {
   return createHmac("sha256", `${process.env.AUTH_SECRET ?? "dev"}:captcha-answer`)
     .update(`${answer.toUpperCase()}:${nonce}`)
     .digest("hex");

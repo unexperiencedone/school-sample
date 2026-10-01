@@ -48,9 +48,9 @@ export function Logo({ className, compact }: { className?: string; compact?: boo
     <span className={cn("inline-flex items-center gap-3 text-current", className)}>
       <LogoMark className="h-10 shrink-0" />
       {!compact && (
-        <span className="flex flex-col leading-none">
+        <span className="flex flex-col leading-none" aria-hidden="true">
           <span className="font-serif text-[1.45rem] tracking-[-0.01em]">
-            {first} <em className="font-serif italic">{rest.join(" ")}</em>
+            {first} <span className="font-light">{rest.join(" ")}</span>
           </span>
           <span className="mt-1 text-[0.6rem] font-semibold tracking-[0.42em] uppercase opacity-75">
             School
