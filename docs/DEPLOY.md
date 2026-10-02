@@ -27,11 +27,23 @@ Push to the branch. `package.json` has a `vercel-build` script (`scripts/vercel-
 of `next build`:
 
 1. `prisma migrate deploy` (uses `DATABASE_URL_UNPOOLED` when present),
-2. seeds the demo school **only if the database has no users**,
+2. loads the demo school from `prisma/snapshot/demo.sql.gz` (a few seconds, all-or-nothing) **only if a previous
+   build hasn't already** — a marker row in `Setting` records it, so redeploys never touch your data,
 3. `next build`.
 
-Open `/login?demo=1` and pick a role. To reset the demo data, redeploy with `SEED_ON_BUILD=always` (wipes everything),
-or use the reset action on `/demo`.
+Open `/login?demo=1` and pick a role. To reset the demo data, redeploy with `SEED_ON_BUILD=always` (wipes everything).
+
+**Why a snapshot instead of `pnpm db:seed`:** the seed sends thousands of small queries. Next to the database that
+is ~35 s; from Vercel's build machine to a database in another region it takes hours. After changing the seed or the
+schema, regenerate the snapshot from a local database:
+
+```
+DATABASE_URL=postgresql://postgres:postgres@localhost:5432/aurelia pnpm db:seed
+DATABASE_URL=postgresql://postgres:postgres@localhost:5432/aurelia pnpm db:snapshot
+```
+
+**Region:** set _Settings → Functions → Function Region_ to the region nearest your database (e.g. Singapore
+`sin1` for a Neon `ap-southeast-1` project) so page requests aren't slow.
 
 ## Known limits on Vercel (fine for a demo)
 
