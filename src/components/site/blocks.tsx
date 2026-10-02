@@ -335,6 +335,7 @@ export function PageHero({
               alt={alt ?? ""}
               fill
               priority
+              fetchPriority="high"
               sizes="(min-width: 1024px) 30vw, 0px"
               className="object-cover"
             />

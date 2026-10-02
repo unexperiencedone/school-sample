@@ -45,7 +45,15 @@ export default async function SectionPage({ params }: Props) {
     <>
       <JsonLd data={breadcrumbJsonLd(crumbs)} />
       <section className="relative isolate overflow-hidden bg-damson-900 text-paper">
-        <Image src={s.image} alt="" fill priority sizes="100vw" className="-z-10 object-cover opacity-40" />
+        <Image
+          src={s.image}
+          alt=""
+          fill
+          priority
+          fetchPriority="high"
+          sizes="100vw"
+          className="-z-10 object-cover opacity-40"
+        />
         <div className="absolute inset-0 -z-10 bg-gradient-to-r from-damson-950/90 to-damson-950/30" />
         <div className="container-site py-14 lg:py-24">
           <div className="[&_a]:text-damson-100 [&_span]:text-damson-300">

@@ -161,7 +161,7 @@ export default function AdmissionsPage() {
               title: "Scholarships & bursaries",
               text: "Up to 50% merit scholarships; bursaries up to 100%.",
               href: "/admissions/scholarships",
-              cta: "Learn more",
+              cta: "See scholarships",
             },
             {
               icon: CalendarDays,
