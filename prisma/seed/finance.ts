@@ -114,7 +114,7 @@ export async function seedFinance(
 
   // ── Current year ──
   for (const s of students) {
-    const profile = rng.pick([
+    let profile = rng.pick([
       "ontime",
       "ontime",
       "ontime",
@@ -128,7 +128,10 @@ export async function seedFinance(
       "late-start",
       "ahead",
     ]);
-    const plan = profile === "ahead" ? "TWO" : rng.pick(["ONE", "TWO", "THREE", "THREE"]);
+    const picked = profile === "ahead" ? "TWO" : rng.pick(["ONE", "TWO", "THREE", "THREE"]);
+    // The demo parent: Ira on the annual plan, paid; Anvi on termly instalments with the next one due in days
+    const plan = s.demo === "IRA" ? "ONE" : s.demo === "ANVI" ? "TWO" : picked;
+    if (s.demo) profile = "ontime";
     const { invoice } = await db.$transaction((tx) =>
       createInvoice(tx, { studentId: s.id, yearId: years.curr.id, planCode: plan, asOf: utc(2026, 3, 1) }),
     );

@@ -7,7 +7,7 @@ import { SEED_TODAY, seedFinance, seedRefundsAndImprest } from "./seed/finance";
 import { seedApplications, seedLeads } from "./seed/admissions";
 import { seedOutbox } from "./seed/outbox";
 import { runLateFees } from "../src/lib/services/jobs";
-import { seedContent } from "./seed/content";
+import { seedContent, seedPortalRequests } from "./seed/content";
 import { createRng } from "./seed/rng";
 
 const db = new PrismaClient();
@@ -71,6 +71,7 @@ export async function seed(client: PrismaClient = db, log: (m: string) => void =
   step(`${leads.length} leads, tours`);
   const apps = await seedApplications(client, rng, academics, academics.classes, users, leads);
   step(`${apps} applications`);
+  await seedPortalRequests(client, users, SEED_TODAY);
   const messages = await seedOutbox(client);
   step(`${messages} outbox messages`);
   log(`Seeded the sample school in ${((Date.now() - t0) / 1000).toFixed(1)}s`);

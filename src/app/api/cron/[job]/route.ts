@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { ApiError, route } from "@/lib/api";
 import { safeEqual } from "@/integrations/crypto";
+import { db } from "@/lib/db";
 import { JOBS, type JobName } from "@/lib/services/jobs";
 
 export const dynamic = "force-dynamic";
@@ -18,8 +19,25 @@ async function run(req: Request, { params }: { params: { job: string } }) {
   if (!given || !safeEqual(given, secret)) throw new ApiError(401, "UNAUTHORIZED", "Invalid cron secret");
   if (!(params.job in JOBS)) throw new ApiError(404, "UNKNOWN_JOB", `No job called "${params.job}"`);
   const started = Date.now();
-  const result = await JOBS[params.job as JobName]();
-  return NextResponse.json({ job: params.job, ok: true, ms: Date.now() - started, result });
+  const run = await db.cronRun.create({ data: { job: params.job } });
+  try {
+    const result = await JOBS[params.job as JobName]();
+    await db.cronRun.update({
+      where: { id: run.id },
+      data: { finishedAt: new Date(), ok: true, result: result as object },
+    });
+    return NextResponse.json({ job: params.job, ok: true, ms: Date.now() - started, result });
+  } catch (e) {
+    await db.cronRun.update({
+      where: { id: run.id },
+      data: {
+        finishedAt: new Date(),
+        ok: false,
+        result: { error: e instanceof Error ? e.message : String(e) },
+      },
+    });
+    throw e;
+  }
 }
 
 export const GET = route<{ job: string }>(run);

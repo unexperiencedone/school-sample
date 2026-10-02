@@ -32,7 +32,6 @@ export function ActionForm({
   return (
     <form
       ref={ref}
-      className={className}
       // onSubmit rather than `action`: React resets uncontrolled fields after a form action even when it fails,
       // which would wipe what the person typed on a validation error.
       onSubmit={(e) => {
@@ -48,9 +47,10 @@ export function ActionForm({
         });
       }}
     >
+      {/* Layout classes go on the fieldset (not the form) so `space-y-*` and grids apply to the fields themselves */}
       <fieldset
         disabled={pending}
-        className={cn("contents", pending && "[&_button[type=submit]]:opacity-70")}
+        className={cn("min-w-0", className, pending && "[&_button[type=submit]]:opacity-70")}
       >
         {children}
       </fieldset>

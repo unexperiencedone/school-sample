@@ -134,6 +134,8 @@ export type SeededStudent = {
   admittedOn: Date;
   firstName: string;
   lastName: string;
+  /** Anvi or Ira Menon — the demo parent's daughters, whose fees the seed shapes for the demo. */
+  demo?: "ANVI" | "IRA";
 };
 
 /**
@@ -255,6 +257,7 @@ export async function seedStudents(
         admittedOn: s.admittedOn,
         firstName,
         lastName: fam.surname,
+        demo: isDemoKid ? (cls.code === "Y4" ? "ANVI" : "IRA") : undefined,
       });
       // previous-year history for continuing pupils
       if (!isNew && ci > 0) {

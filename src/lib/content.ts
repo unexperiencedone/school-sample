@@ -166,8 +166,8 @@ export const getEvents = cache(async (): Promise<PublicEvent[]> => {
   try {
     const { db } = await import("@/lib/db");
     const rows = await db.event.findMany({ where: { published: true }, orderBy: { startsAt: "asc" } });
-    if (rows.length)
-      return rows.map((e) => ({ ...e, startsAt: e.startsAt.toISOString(), endsAt: e.endsAt.toISOString() }));
+    // The database is the source of truth once reachable: no published events means none, not the JSON seed
+    return rows.map((e) => ({ ...e, startsAt: e.startsAt.toISOString(), endsAt: e.endsAt.toISOString() }));
   } catch {
     /* database unreachable: fall back to the JSON seed */
   }
@@ -195,9 +195,9 @@ export const getAnnouncementBar = cache(async (): Promise<BarItem[]> => {
         publishedAt: { lte: now },
         OR: [{ expiresAt: null }, { expiresAt: { gt: now } }],
       },
-      orderBy: { order: "asc" },
+      orderBy: [{ order: "asc" }, { publishedAt: "desc" }],
     });
-    if (rows.length) return rows;
+    return rows; // switching every item off in the CRM hides the bar
   } catch {
     /* fall back */
   }
