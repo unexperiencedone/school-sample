@@ -43,6 +43,8 @@ const nextConfig: NextConfig = {
   distDir: process.env.NEXT_DIST_DIR || ".next",
   poweredByHeader: false,
   devIndicators: false,
+  // MDX pages are read from /content at request time; make sure they ship with every serverless function.
+  outputFileTracingIncludes: { "/**": ["./content/**/*"] },
   serverExternalPackages: ["@react-pdf/renderer", "@node-rs/argon2", "exceljs", "sharp"],
   images: { formats: ["image/avif", "image/webp"] },
   async headers() {

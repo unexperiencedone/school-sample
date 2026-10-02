@@ -55,4 +55,11 @@ export const school = {
 
 export const isDemoMode = () => process.env.NEXT_PUBLIC_DEMO_MODE === "true";
 
-export const siteUrl = () => (process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000").replace(/\/$/, "");
+/** The public origin. On Vercel it falls back to the production domain, so a deploy works before it is set. */
+export const siteUrl = () =>
+  (
+    process.env.NEXT_PUBLIC_SITE_URL ||
+    (process.env.VERCEL_PROJECT_PRODUCTION_URL && `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`) ||
+    (process.env.VERCEL_URL && `https://${process.env.VERCEL_URL}`) ||
+    "http://localhost:3000"
+  ).replace(/\/$/, "");

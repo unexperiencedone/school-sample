@@ -1,8 +1,8 @@
 "use server";
 
-import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { db } from "@/lib/db";
+import { processWebhook } from "@/lib/services/payments";
 import { randomId } from "@/integrations/crypto";
 import {
   MOCK_EVENT_ID_HEADER,
@@ -15,8 +15,8 @@ import {
 export type Outcome = "success" | "failure" | "pending" | "duplicate";
 
 /**
- * Simulates the gateway: posts a signed webhook to our own endpoint over HTTP — exactly as a real gateway would —
- * then redirects the payer back to the return URL. "duplicate" delivers the same event twice to prove idempotency.
+ * Simulates the gateway: delivers a signed webhook through the real webhook handler — exactly what a gateway's
+ * POST would trigger — then redirects the payer back to the return URL. "duplicate" delivers the same event twice to prove idempotency.
  */
 export async function simulatePaymentForm(form: FormData): Promise<void> {
   const outcome = String(form.get("outcome")) as Outcome;
@@ -36,10 +36,8 @@ export async function simulatePayment(
     throw new Error("Mock gateway is disabled");
   const order = await db.paymentOrder.findUnique({ where: { providerOrderId } });
   if (!order || order.provider !== "mock") throw new Error("Unknown order");
-  const h = await headers();
-  const origin = `${h.get("x-forwarded-proto") ?? "http"}://${h.get("x-forwarded-host") ?? h.get("host")}`;
   const paymentId = randomId("mock_pay");
-  const returnTo = new URL("/payments/return", origin);
+  const returnTo = new URL("/payments/return", "http://localhost");
   returnTo.searchParams.set("order_id", providerOrderId);
 
   if (outcome !== "pending") {
@@ -60,18 +58,14 @@ export async function simulatePayment(
     };
     const raw = JSON.stringify(body);
     const deliveries = outcome === "duplicate" ? 2 : 1;
-    for (let i = 0; i < deliveries; i++) {
-      await fetch(`${origin}/api/payments/webhook/mock`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          [MOCK_SIGNATURE_HEADER]: signMockWebhook(raw),
-          [MOCK_EVENT_ID_HEADER]: body.id,
-        },
-        body: raw,
-        cache: "no-store",
-      });
-    }
+    // Delivered in-process through the same verifier and handler as /api/payments/webhook/mock, so it also works
+    // where the app can't call its own URL (e.g. Vercel deployment protection on preview links).
+    const signed = new Headers({
+      "Content-Type": "application/json",
+      [MOCK_SIGNATURE_HEADER]: signMockWebhook(raw),
+      [MOCK_EVENT_ID_HEADER]: body.id,
+    });
+    for (let i = 0; i < deliveries; i++) await processWebhook("mock", raw, signed);
     returnTo.searchParams.set("payment_id", paymentId);
     returnTo.searchParams.set("signature", signMockCheckout(providerOrderId, paymentId));
   }

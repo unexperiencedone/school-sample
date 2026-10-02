@@ -6,13 +6,21 @@ import type { StorageAdapter, UploadTarget } from "./types";
 /**
  * Local disk storage in `.storage/` (outside `public/`, never served statically).
  * Upload/download URLs point at app routes that verify a signed, expiring token.
+ *
+ * On Vercel the project folder is read-only, so files go to `/tmp` (per instance, not durable — fine for the
+ * demo; set STORAGE_PROVIDER=s3 for real use). Documents written by the seed at build time don't exist at
+ * runtime there, so a missing seeded PDF is served as a blank placeholder rather than an error.
  */
+const PLACEHOLDER_PDF = Buffer.from(
+  "%PDF-1.4\n1 0 obj<</Type/Catalog/Pages 2 0 R>>endobj 2 0 obj<</Type/Pages/Kids[3 0 R]/Count 1>>endobj 3 0 obj<</Type/Page/MediaBox[0 0 200 200]/Parent 2 0 R>>endobj\ntrailer<</Root 1 0 R>>\n%%EOF\n",
+);
 export class LocalStorageAdapter implements StorageAdapter {
   readonly name = "local";
   readonly mode = "MOCK" as const;
 
   private root(): string {
-    return path.resolve(process.cwd(), process.env.STORAGE_LOCAL_DIR || ".storage");
+    if (process.env.STORAGE_LOCAL_DIR) return path.resolve(process.cwd(), process.env.STORAGE_LOCAL_DIR);
+    return process.env.VERCEL ? "/tmp/aurelia-storage" : path.resolve(process.cwd(), ".storage");
   }
 
   private resolve(key: string): string {
@@ -53,7 +61,13 @@ export class LocalStorageAdapter implements StorageAdapter {
   }
 
   async get(key: string): Promise<Buffer> {
-    return readFile(this.resolve(key));
+    try {
+      return await readFile(this.resolve(key));
+    } catch (e) {
+      if (process.env.VERCEL && key.endsWith(".pdf") && (e as NodeJS.ErrnoException).code === "ENOENT")
+        return PLACEHOLDER_PDF;
+      throw e;
+    }
   }
 
   async delete(key: string): Promise<void> {
