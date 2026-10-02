@@ -7,7 +7,7 @@ import { can } from "@/lib/rbac";
 import { MOMENTS } from "@/lib/demo/moments";
 import { demoLogin } from "@/app/(auth)/login/actions";
 import { DoneToggle } from "./done-toggle";
-import { resetDemo } from "./actions";
+import { ResetButton } from "./reset-button";
 
 export const metadata: Metadata = {
   title: "Guided demo",
@@ -104,11 +104,9 @@ export default async function DemoPage({ searchParams }: { searchParams: Promise
           seconds). Everything entered during the demo is removed.
         </p>
         {user && can(user.role, "demo:reset") ? (
-          <form action={resetDemo} className="mt-4">
-            <button type="submit" className={`${btn} border border-line-strong hover:bg-sunken`}>
-              Reset the sample school
-            </button>
-          </form>
+          <div className="mt-4">
+            <ResetButton className={`${btn} border border-line-strong hover:bg-sunken`} />
+          </div>
         ) : (
           <p className="mt-4 text-sm">
             Sign in as the{" "}

@@ -14,6 +14,12 @@ export async function resetDemo(): Promise<void> {
     process.env.DATABASE_URL_UNPOOLED || process.env.POSTGRES_URL_NON_POOLING || process.env.DATABASE_URL;
   if (!url) throw new Error("DATABASE_URL is not set");
   await withClient(url, loadSnapshot);
-  await audit({ actor: { id: user.id, role: user.role }, action: "demo.reset", entity: "Demo" });
+  // Recorded without an actor id: the reload replaces every user, so the old id may no longer exist
+  await audit({
+    actor: null,
+    action: "demo.reset",
+    entity: "Demo",
+    after: { by: user.email, role: user.role },
+  });
   redirect("/demo?reset=1");
 }
