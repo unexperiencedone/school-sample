@@ -158,6 +158,32 @@ describe("storage", () => {
   });
 });
 
+describe("storage: S3-compatible stores", () => {
+  it("accepts the standard AWS variable names and presigns path-style for a custom endpoint", () => {
+    Object.assign(process.env, {
+      S3_BUCKET: "students",
+      AWS_REGION: "ap-southeast-1",
+      AWS_ENDPOINT_URL_S3: "https://storage.example.test",
+      AWS_ACCESS_KEY_ID: "AK",
+      AWS_SECRET_ACCESS_KEY: "s",
+    });
+    const url = new URL(
+      new S3StorageAdapter().presign("GET", "docs/a.pdf", 300, new Date("2026-01-01T00:00:00Z")),
+    );
+    expect(url.host).toBe("storage.example.test");
+    expect(url.pathname).toBe("/students/docs/a.pdf");
+    expect(url.searchParams.get("X-Amz-Credential")).toBe("AK/20260101/ap-southeast-1/s3/aws4_request");
+    for (const k of [
+      "S3_BUCKET",
+      "AWS_REGION",
+      "AWS_ENDPOINT_URL_S3",
+      "AWS_ACCESS_KEY_ID",
+      "AWS_SECRET_ACCESS_KEY",
+    ])
+      delete process.env[k];
+  });
+});
+
 describe("lead webhook", () => {
   it("signs bodies and backs off", () => {
     expect(signWebhookBody("{}", "k")).toBe(`sha256=${hmacSha256Hex("k", "{}")}`);

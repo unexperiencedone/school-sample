@@ -5,21 +5,23 @@ import type { StorageAdapter, UploadTarget } from "./types";
 
 /**
  * S3 (or S3-compatible: R2, MinIO via S3_ENDPOINT) using SigV4 query-string presigning. No SDK needed.
- * Env: S3_BUCKET, S3_REGION, AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, optional S3_ENDPOINT.
+ * Env: S3_BUCKET, AWS_REGION (or S3_REGION), AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, optional
+ * AWS_ENDPOINT_URL_S3 (or S3_ENDPOINT) for S3-compatible stores such as Neon Object Storage.
  */
 export class S3StorageAdapter implements StorageAdapter {
   readonly name = "s3";
   readonly mode = "LIVE" as const;
 
   private cfg() {
-    const [bucket, region, accessKey, secretKey] = requireEnv("S3", [
+    const [bucket, accessKey, secretKey] = requireEnv("S3", [
       "S3_BUCKET",
-      "S3_REGION",
       "AWS_ACCESS_KEY_ID",
       "AWS_SECRET_ACCESS_KEY",
     ]);
-    const endpoint = process.env.S3_ENDPOINT || `https://${bucket}.s3.${region}.amazonaws.com`;
-    const pathStyle = !!process.env.S3_ENDPOINT;
+    const region = process.env.S3_REGION || requireEnv("S3", ["AWS_REGION"])[0]!;
+    const custom = process.env.S3_ENDPOINT || process.env.AWS_ENDPOINT_URL_S3;
+    const endpoint = custom || `https://${bucket}.s3.${region}.amazonaws.com`;
+    const pathStyle = !!custom;
     return { bucket, region, accessKey, secretKey, endpoint, pathStyle };
   }
 

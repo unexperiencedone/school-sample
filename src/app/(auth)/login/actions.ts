@@ -64,5 +64,5 @@ export async function demoLogin(form: FormData): Promise<void> {
   if (!isDemoMode()) throw new Error("Demo mode is off");
   const role = String(form.get("role")) as Role;
   await signIn("demo", { role, redirect: false });
-  redirect(homeFor(role));
+  redirect(safeCallback(form.get("to")) ?? homeFor(role));
 }

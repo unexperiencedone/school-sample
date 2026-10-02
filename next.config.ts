@@ -44,8 +44,11 @@ const nextConfig: NextConfig = {
   poweredByHeader: false,
   devIndicators: false,
   // MDX pages are read from /content at request time; make sure they ship with every serverless function.
-  outputFileTracingIncludes: { "/**": ["./content/**/*"] },
-  serverExternalPackages: ["@react-pdf/renderer", "@node-rs/argon2", "exceljs", "sharp"],
+  outputFileTracingIncludes: {
+    "/**": ["./content/**/*"],
+    "/demo": ["./prisma/snapshot/demo.sql.gz"], // the Reset-demo action loads it
+  },
+  serverExternalPackages: ["@react-pdf/renderer", "@node-rs/argon2", "exceljs", "sharp", "pg"],
   images: { formats: ["image/avif", "image/webp"] },
   async headers() {
     return [

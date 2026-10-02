@@ -11,9 +11,15 @@
 // Why a snapshot and not `pnpm db:seed`: the seed issues thousands of small queries, which takes ~35 s next to the
 // database but hours across a region boundary (build machine ↔ database). The snapshot is a handful of statements.
 import { execSync } from "node:child_process";
-import { existsSync, readFileSync } from "node:fs";
-import { gunzipSync } from "node:zlib";
+import { existsSync } from "node:fs";
 import pg from "pg";
+import {
+  SNAPSHOT_FILE,
+  isSnapshotLoaded,
+  loadSnapshot,
+  markLoaded,
+  pgConfig,
+} from "../src/lib/demo/load-snapshot.mjs";
 
 if (!process.env.DATABASE_URL) {
   console.error(
@@ -36,51 +42,20 @@ console.log("▸ Applying database migrations");
 run("pnpm exec prisma migrate deploy", { DATABASE_URL: direct });
 console.log(`  done (${took()})`);
 
-// node-postgres doesn't understand Prisma-only (schema, pgbouncer) or channel_binding parameters
-const u = new URL(direct);
-for (const k of ["schema", "pgbouncer", "connection_limit", "channel_binding"]) u.searchParams.delete(k);
-const client = new pg.Client({ connectionString: u.toString() });
+const client = new pg.Client(pgConfig(direct));
 await client.connect();
 
-const MARKER = "demo_snapshot";
-const loaded = (await client.query(`select 1 from "Setting" where key = $1`, [MARKER])).rowCount > 0;
-
+const loaded = await isSnapshotLoaded(client);
 if (loaded && process.env.SEED_ON_BUILD !== "always") {
   console.log("▸ Demo data already loaded; leaving the database as it is");
+} else if (existsSync(SNAPSHOT_FILE)) {
+  console.log(loaded ? "▸ SEED_ON_BUILD=always: reloading the demo school" : "▸ Loading the demo school");
+  await loadSnapshot(client);
+  console.log(`  done (${took()})`);
 } else {
-  const file = "prisma/snapshot/demo.sql.gz";
-  if (existsSync(file)) {
-    console.log(loaded ? "▸ SEED_ON_BUILD=always: reloading the demo school" : "▸ Loading the demo school");
-    const sql = gunzipSync(readFileSync(file)).toString("utf8");
-    try {
-      await client.query("BEGIN");
-      const { rows } = await client.query(
-        `select tablename from pg_tables where schemaname = 'public' and tablename <> '_prisma_migrations'`,
-      );
-      await client.query(
-        `truncate ${rows.map((r) => `"${r.tablename}"`).join(", ")} restart identity cascade`,
-      );
-      await client.query(sql);
-      await client.query(`select pg_catalog.set_config('search_path', '"$user", public', false)`);
-      await client.query(
-        `insert into "Setting" (key, value, "updatedAt") values ($1, $2, now())
-         on conflict (key) do update set value = excluded.value, "updatedAt" = now()`,
-        [MARKER, JSON.stringify({ loadedAt: new Date().toISOString() })],
-      );
-      await client.query("COMMIT");
-    } catch (e) {
-      await client.query("ROLLBACK").catch(() => {});
-      throw e;
-    }
-    console.log(`  done (${took()})`);
-  } else {
-    console.log("▸ No snapshot found; running the seed (slow if the database is far away)");
-    run("pnpm -s db:seed", { DATABASE_URL: direct });
-    await client.query(
-      `insert into "Setting" (key, value, "updatedAt") values ($1, '{}', now()) on conflict (key) do nothing`,
-      [MARKER],
-    );
-  }
+  console.log("▸ No snapshot found; running the seed (slow if the database is far away)");
+  run("pnpm -s db:seed", { DATABASE_URL: direct });
+  await markLoaded(client);
 }
 await client.end();
 

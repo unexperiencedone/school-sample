@@ -52,5 +52,5 @@ export async function scanForMalware(_data: Buffer): Promise<{ clean: boolean; e
 
 export const STORAGE_ENV: Record<string, string[]> = {
   local: ["STORAGE_LOCAL_DIR"],
-  s3: ["S3_BUCKET", "S3_REGION", "AWS_ACCESS_KEY_ID", "AWS_SECRET_ACCESS_KEY"],
+  s3: ["S3_BUCKET", "AWS_REGION", "AWS_ACCESS_KEY_ID", "AWS_SECRET_ACCESS_KEY"],
 };
