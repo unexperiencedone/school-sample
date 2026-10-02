@@ -47,6 +47,15 @@ DATABASE_URL=postgresql://postgres:postgres@localhost:5432/aurelia pnpm db:snaps
 **Region:** set _Settings → Functions → Function Region_ to the region nearest your database (e.g. Singapore
 `sin1` for a Neon `ap-southeast-1` project) so page requests aren't slow.
 
+## Keeping the dates current
+
+The snapshot is dated to the day it was made (1 Oct 2026). Every time it is loaded (first deploy, `SEED_ON_BUILD=always`
+or **Reset the sample school**) all dates and timestamps move forward by a whole number of weeks, so the demo's "today"
+becomes the real today and weekdays are unchanged: instalments fall due next week, "this month" has data, open mornings
+are still ahead, vacancies are still open. Birth dates never move. `/demo` warns when the loaded data is more than two
+weeks old; before a demo, press **Reset the sample school** (about ten seconds) to bring it up to date. For a local
+database, `SEED_SHIFT_TO_TODAY=1 pnpm db:seed` does the same.
+
 ## Known limits on Vercel (fine for a demo)
 
 - **Uploads** (registration documents) are written to `/tmp`, which is per-instance and not durable. Set

@@ -18,7 +18,7 @@ email, WhatsApp and SMS go to an outbox instead of being sent. Nothing needs an 
 pnpm i                       # also creates .env from .env.example (all values are safe local defaults)
 docker compose up -d         # Postgres 16 on :5432
 pnpm db:migrate
-pnpm db:seed                 # ~35 s: 240 pupils, 60 leads, 25 applications, 12 vacancies, 20 staff applications…
+pnpm db:seed                 # ~35 s (SEED_SHIFT_TO_TODAY=1 dates it to today): 240 pupils, 60 leads, 25 applications, 12 vacancies, 20 staff applications…
 pnpm dev                     # http://localhost:3000
 ```
 

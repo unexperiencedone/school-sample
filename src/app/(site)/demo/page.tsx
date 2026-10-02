@@ -4,6 +4,8 @@ import { notFound } from "next/navigation";
 import { isDemoMode } from "@/config/school";
 import { getCurrentUser } from "@/lib/auth/session";
 import { can } from "@/lib/rbac";
+import { db } from "@/lib/db";
+import { formatDate } from "@/lib/dates";
 import { MOMENTS } from "@/lib/demo/moments";
 import { demoLogin } from "@/app/(auth)/login/actions";
 import { DoneToggle } from "./done-toggle";
@@ -42,6 +44,10 @@ export default async function DemoPage({ searchParams }: { searchParams: Promise
   if (!isDemoMode()) notFound();
   const user = await getCurrentUser();
   const sp = await searchParams;
+  // The sample data is dated to the day it was loaded; say so when that was a while ago
+  const marker = await db.setting.findUnique({ where: { key: "demo_snapshot" } });
+  const anchor = (marker?.value as { anchor?: string } | null)?.anchor;
+  const staleDays = anchor ? Math.floor((Date.now() - Date.parse(`${anchor}T00:00:00Z`)) / 86400e3) : 0;
   return (
     <div className="container-site max-w-4xl py-16">
       <p className="t-eyebrow">Sample build</p>
@@ -51,6 +57,13 @@ export default async function DemoPage({ searchParams }: { searchParams: Promise
         believable data. Each card signs you in as the right person and opens the right screen. Everything
         uses mock payments and an outbox instead of real email, WhatsApp or SMS.
       </p>
+      {staleDays > 14 && anchor && (
+        <p role="note" className="mt-6 rounded-md bg-sunken px-4 py-3 text-sm">
+          The sample data is dated {formatDate(`${anchor}T00:00:00Z`)}, {staleDays} days ago, so due dates and
+          &ldquo;this month&rdquo; figures will look old. The Super admin can bring it up to today with{" "}
+          <em>Reset the sample school</em> below.
+        </p>
+      )}
       {sp.reset && (
         <p role="status" className="mt-6 rounded-md bg-success-bg px-4 py-3 text-sm text-success">
           The sample school has been reset to its starting state.

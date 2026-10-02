@@ -13,7 +13,7 @@ signs in as the right person and opens the right screen) and is generated from `
 - Open `/login?demo=1` (or `/demo`). Demo accounts sign in with one click; no passwords are shown.
 - Use a desktop window for the CRM and a phone-sized window for the parent portal to show both.
 - Sent messages: `/admin/outbox` (staff) shows every email, WhatsApp and SMS the system "sent".
-- After a run-through, sign in as **Super admin** and use **Reset the sample school** on `/demo`.
+- Before a demo and after each run-through, sign in as **Super admin** and press **Reset the sample school** on `/demo`. It also moves every date forward so "today" is today (instalments due next week, this month's collections, upcoming events).
 
 | Account     | Sees                                             |
 | ----------- | ------------------------------------------------ |

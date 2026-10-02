@@ -9,6 +9,7 @@ import { seedOutbox } from "./seed/outbox";
 import { runLateFees } from "../src/lib/services/jobs";
 import { seedContent, seedPortalRequests } from "./seed/content";
 import { createRng } from "./seed/rng";
+import { DATE_COLUMNS_SQL, shiftDays, shiftStatements } from "../src/lib/demo/load-snapshot.mjs";
 
 const db = new PrismaClient();
 
@@ -75,11 +76,26 @@ export async function seed(client: PrismaClient = db, log: (m: string) => void =
   await seedPortalRequests(client, users, SEED_TODAY);
   const messages = await seedOutbox(client);
   step(`${messages} outbox messages`);
+  let anchor = SEED_TODAY.toISOString().slice(0, 10);
+  if (process.env.SEED_SHIFT_TO_TODAY === "1") {
+    // Optional: move every date forward so the demo's "today" is the real today (what deploys do on load)
+    const days = shiftDays(anchor);
+    if (days > 0) {
+      const columns =
+        await client.$queryRawUnsafe<{ table_name: string; column_name: string; data_type: string }[]>(
+          DATE_COLUMNS_SQL,
+        );
+      for (const statement of shiftStatements(columns, days)) await client.$executeRawUnsafe(statement);
+      anchor = new Date(Date.parse(`${anchor}T00:00:00Z`) + days * 86400e3).toISOString().slice(0, 10);
+      log(`  dates moved forward ${days} days (to ${anchor})`);
+    }
+  }
+  const marker = { loadedAt: new Date().toISOString(), anchor };
   // Marks this database as the demo school (the deploy build and the Reset action only touch marked databases)
   await client.setting.upsert({
     where: { key: "demo_snapshot" },
-    create: { key: "demo_snapshot", value: { loadedAt: new Date().toISOString() } },
-    update: { value: { loadedAt: new Date().toISOString() } },
+    create: { key: "demo_snapshot", value: marker },
+    update: { value: marker },
   });
   log(`Seeded the sample school in ${((Date.now() - t0) / 1000).toFixed(1)}s`);
 }
