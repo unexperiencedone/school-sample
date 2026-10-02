@@ -183,11 +183,23 @@ export async function deletionPreview(actor: Actor, id: string): Promise<Deletio
   assertCan(actor.role, "privacy:manage");
   const r = await request(id);
   const f = await subjectFacts(r.subjectEmail);
-  const [leads, newsletter, drafts, submitted, invoices, payments, auditEntries] = await Promise.all([
+  const [
+    leads,
+    newsletter,
+    drafts,
+    submitted,
+    staffDrafts,
+    staffSubmitted,
+    invoices,
+    payments,
+    auditEntries,
+  ] = await Promise.all([
     db.lead.count({ where: { email: f.eq } }),
     db.newsletterSubscriber.count({ where: { email: f.eq } }),
     db.application.count({ where: { AND: [f.applicationWhere, { stage: "DRAFT" }] } }),
     db.application.count({ where: { AND: [f.applicationWhere, { stage: { not: "DRAFT" } }] } }),
+    db.staffApplication.count({ where: { email: f.eq, status: "DRAFT" } }),
+    db.staffApplication.count({ where: { email: f.eq, status: { not: "DRAFT" } } }),
     db.invoice.count({ where: { studentId: { in: f.studentIds } } }),
     db.payment.count({ where: f.paymentWhere }),
     f.user ? db.auditLog.count({ where: { actorId: f.user.id } }) : Promise.resolve(0),
@@ -198,10 +210,12 @@ export async function deletionPreview(actor: Actor, id: string): Promise<Deletio
     enquiries: leads,
     newsletter,
     draftApplications: drafts,
+    staffDrafts,
     invoices,
     payments,
     pupilRecord: f.studentIds.length,
     applications: submitted,
+    staffApplications: staffSubmitted,
     auditLog: auditEntries,
   };
   const withCount = (items: PolicyItem[]) => items.map((i) => ({ ...i, count: counts[i.key] }));

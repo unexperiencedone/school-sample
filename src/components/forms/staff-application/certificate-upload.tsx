@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { CheckCircle2, FileUp, Loader2, RotateCcw, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -13,7 +13,7 @@ type State =
   | { status: "done"; fileName?: string }
   | { status: "error"; message: string };
 
-type Target = { url: string; headers: Record<string, string>; key: string };
+type Target = { url: string; headers: Record<string, string>; key: string; completeUrl?: string };
 
 /**
  * One certificate slot for an education row. Same flow as registration documents: ask the API for a signed target,
@@ -21,14 +21,18 @@ type Target = { url: string; headers: Record<string, string>; key: string };
  */
 export function CertificateUpload({
   id,
+  name,
   slot,
   label,
   applicationId,
   token,
   storedKey,
   onChange,
+  onBusyChange,
 }: {
   id: string;
+  /** Form field this slot fills; on the file input so a failed validation can focus it. */
+  name: string;
   /** Upload slot the API accepts, for example "education-0". */
   slot: string;
   label: string;
@@ -36,6 +40,8 @@ export function CertificateUpload({
   token: string;
   storedKey: string | undefined;
   onChange: (key: string) => void;
+  /** Called with true while a file is uploading, and with false when it stops (or this slot goes away). */
+  onBusyChange: (busy: boolean) => void;
 }) {
   const input = useRef<HTMLInputElement>(null);
   const [state, setState] = useState<State>(storedKey ? { status: "done" } : { status: "empty" });
@@ -58,6 +64,14 @@ export function CertificateUpload({
       await put(target as Target, file, (progress) =>
         setState((s) => (s.status === "uploading" ? { ...s, progress } : s)),
       );
+      if (target.completeUrl) {
+        // Uploaded straight to the object store: the server now checks the file it received
+        const done = await fetch(target.completeUrl, { method: "POST" });
+        if (!done.ok) {
+          const body = (await done.json().catch(() => null)) as { error?: { message?: string } } | null;
+          throw new Error(body?.error?.message ?? "The file couldn't be verified.");
+        }
+      }
       setState({ status: "done", fileName: file.name });
       onChange(target.key);
     } catch (e) {
@@ -67,6 +81,11 @@ export function CertificateUpload({
 
   const hintId = `${id}-hint`;
   const busy = state.status === "uploading";
+  useEffect(() => {
+    if (!busy) return;
+    onBusyChange(true);
+    return () => onBusyChange(false);
+  }, [busy, onBusyChange]);
   return (
     <div
       className={cn(
@@ -87,6 +106,7 @@ export function CertificateUpload({
       <input
         ref={input}
         id={id}
+        name={name}
         type="file"
         accept={ACCEPT.join(",")}
         className="sr-only"

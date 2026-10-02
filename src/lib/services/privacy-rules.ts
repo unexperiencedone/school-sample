@@ -36,6 +36,8 @@ export function phoneKeys(phone: string): string[] {
 }
 
 export const RETENTION_YEARS = 8;
+/** Sample retention for a submitted staff application, counted from the vacancy closing (or from submission, for a general application). */
+export const STAFF_APPLICATION_RETENTION_MONTHS = 12;
 
 export type PolicyKey =
   | "account"
@@ -43,10 +45,12 @@ export type PolicyKey =
   | "enquiries"
   | "newsletter"
   | "draftApplications"
+  | "staffDrafts"
   | "invoices"
   | "payments"
   | "pupilRecord"
   | "applications"
+  | "staffApplications"
   | "auditLog";
 
 export type PolicyItem = { key: PolicyKey; label: string; detail: string };
@@ -79,6 +83,12 @@ export const DELETION_POLICY: { erase: PolicyItem[]; retain: PolicyItem[] } = {
       label: "Unsubmitted application drafts",
       detail: "Drafts that never reached the school.",
     },
+    {
+      key: "staffDrafts",
+      label: "Unsubmitted staff application drafts",
+      detail:
+        "Drafts of a job application that never reached HR, with the personal, family and referee details typed so far. They stop being resumable after 14 days but stay in the database until a person erases them.",
+    },
   ],
   retain: [
     {
@@ -101,6 +111,11 @@ export const DELETION_POLICY: { erase: PolicyItem[]; retain: PolicyItem[] } = {
       key: "applications",
       label: "Submitted admissions applications",
       detail: "Kept with the pupil record, or for the admission cycle when no place was taken up.",
+    },
+    {
+      key: "staffApplications",
+      label: "Submitted staff applications",
+      detail: `Kept for ${STAFF_APPLICATION_RETENTION_MONTHS} months after the vacancy closes (from submission, for a general application) so the school can answer a challenge to a hiring decision (sample policy).`,
     },
     {
       key: "auditLog",

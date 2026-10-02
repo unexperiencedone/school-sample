@@ -59,6 +59,7 @@ export function DocumentUpload({
       const target = (await res.json()) as {
         url?: string;
         headers?: Record<string, string>;
+        completeUrl?: string;
         error?: { message: string };
       };
       if (!res.ok || !target.url) throw new Error(target.error?.message ?? "Couldn't start the upload");
@@ -75,6 +76,14 @@ export function DocumentUpload({
         xhr.onerror = () => reject(new Error("Network error during upload"));
         xhr.send(file);
       });
+      if (target.completeUrl) {
+        // Uploaded straight to the object store: the server now checks the file it received
+        const done = await fetch(target.completeUrl, { method: "POST" });
+        if (!done.ok) {
+          const body = (await done.json().catch(() => null)) as { error?: { message: string } } | null;
+          throw new Error(body?.error?.message ?? "The file couldn't be verified");
+        }
+      }
       setState({ status: "done", fileName: file.name });
       onUploaded?.(file.name);
     } catch (e) {

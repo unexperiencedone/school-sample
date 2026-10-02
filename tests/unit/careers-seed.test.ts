@@ -2,8 +2,8 @@ import { describe, expect, it } from "vitest";
 import { buildStaffApplications } from "../../prisma/seed/careers";
 import { SEED_TODAY } from "../../prisma/seed/finance";
 import { createRng } from "../../prisma/seed/rng";
-import { applicationGaps, safeguardingFlags, scorecardTotal } from "@/lib/services/careers-admin-rules";
-import { applicantName, validateAll, wordCount } from "@/lib/schemas/staff-application";
+import { safeguardingFlags, scorecardTotal } from "@/lib/services/careers-admin-rules";
+import { applicantName, gapsFor, validateAll, wordCount } from "@/lib/schemas/staff-application";
 
 const build = (seed = 20260401) => buildStaffApplications(createRng(seed));
 const count = <T>(items: T[], pick: (t: T) => string) =>
@@ -91,7 +91,7 @@ describe("seeded staff applications", () => {
   });
 
   it("includes two employment gaps and one declared pending action", () => {
-    const withGaps = specs.filter((s) => applicationGaps(s.data, "2026-10").length > 0);
+    const withGaps = specs.filter((s) => gapsFor(s.data, "2026-10").length > 0);
     expect(withGaps).toHaveLength(2);
     const flagged = specs.filter((s) => safeguardingFlags(s.data).length > 0);
     expect(flagged).toHaveLength(1);

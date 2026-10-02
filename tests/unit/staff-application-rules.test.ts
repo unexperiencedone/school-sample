@@ -1,13 +1,18 @@
 import { describe, expect, it } from "vitest";
-import { validateAll } from "@/lib/schemas/staff-application";
+import {
+  gapsFor,
+  jobsForGaps,
+  validateAll,
+  type Gap,
+  type StaffApplicationData,
+} from "@/lib/schemas/staff-application";
 import {
   ageOnDate,
   applicationIssues,
+  currentMonthIst,
   describeGap,
   firstFailingStep,
   friendlyMessage,
-  gapsFor,
-  jobsForGaps,
   monthLabel,
   stepKeyFor,
   tidyDeclaration,
@@ -201,6 +206,100 @@ describe("employment gaps", () => {
       "2026-10",
     );
     expect(jobs).toEqual([]);
+  });
+});
+
+describe("employment gaps: one rule for the form and the HR view", () => {
+  const job = (from: string, to: string) => ({ employer: "A", role: "B", from, to });
+  const NOW = "2026-10";
+  const cases: { name: string; data: StaffApplicationData; gaps: Gap[] }[] = [
+    {
+      name: "out of work since the last job",
+      data: { current: { employed: false }, history: { items: [job("2015-01", "2022-03")] } },
+      gaps: [{ from: "2022-04", to: "2026-09", months: 54 }],
+    },
+    {
+      name: "not employed with no history",
+      data: { current: { employed: false }, history: { items: [] } },
+      gaps: [],
+    },
+    {
+      name: "not employed and the last job ended this month",
+      data: { current: { employed: false }, history: { items: [job("2015-01", NOW)] } },
+      gaps: [],
+    },
+    {
+      name: "employed with a start month in the future",
+      data: {
+        current: { employed: true, since: "2027-06" },
+        history: { items: [job("2015-01", "2019-12")] },
+      },
+      gaps: [],
+    },
+    {
+      name: "a future history row is ignored",
+      data: {
+        current: { employed: true, since: "2020-01" },
+        history: { items: [job("2015-01", "2019-12"), job("2028-01", "2028-12")] },
+      },
+      gaps: [],
+    },
+    {
+      name: "half-typed rows are ignored",
+      data: {
+        current: { employed: false },
+        history: { items: [job("2015-01", "2019-12"), job("2021-01", ""), job("", "2022-01")] },
+      },
+      gaps: [{ from: "2020-01", to: "2026-09", months: 81 }],
+    },
+    {
+      name: "a gap between jobs",
+      data: {
+        current: { employed: true, since: "2020-01" },
+        history: { items: [job("2012-01", "2014-12"), job("2015-06", "2019-05")] },
+      },
+      gaps: [
+        { from: "2015-01", to: "2015-05", months: 5 },
+        { from: "2019-06", to: "2019-12", months: 7 },
+      ],
+    },
+  ];
+
+  it.each(cases)("$name", ({ data, gaps }) => {
+    // The form passes the rows it is editing plus the saved current post; HR passes the whole stored application.
+    const form = gapsFor({ history: data.history, current: data.current }, NOW);
+    const stored: StaffApplicationData = { ...data, personal: validApplication().personal };
+    const hr = gapsFor(stored, NOW);
+    expect(form).toEqual(gaps);
+    expect(hr).toEqual(form);
+  });
+
+  it("only adds the out-of-work row when history exists and the applicant is not employed", () => {
+    const history = { items: [job("2015-01", "2022-03")] };
+    expect(jobsForGaps({ current: { employed: false }, history }, NOW)).toContainEqual({
+      from: NOW,
+      to: NOW,
+    });
+    expect(jobsForGaps({ current: { employed: true, since: "2023-01" }, history }, NOW)).not.toContainEqual({
+      from: NOW,
+      to: NOW,
+    });
+    expect(jobsForGaps({ current: { employed: false }, history: { items: [] } }, NOW)).toEqual([]);
+  });
+
+  it("rejects a current post that started after this month, on the form and the server", () => {
+    const next = `${Number(currentMonthIst().slice(0, 4)) + 1}-01`;
+    const result = FORM_SCHEMAS.current.safeParse({ employed: true, employer: "A", role: "B", since: next });
+    expect(result.success).toBe(false);
+    expect(result.error?.issues[0]).toMatchObject({ path: ["since"] });
+    expect(
+      FORM_SCHEMAS.current.safeParse({
+        employed: true,
+        employer: "A",
+        role: "B",
+        since: currentMonthIst(),
+      }).success,
+    ).toBe(true);
   });
 });
 

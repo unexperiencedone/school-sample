@@ -1,12 +1,10 @@
-import { requireStaff } from "@/lib/auth/session";
 import { can } from "@/lib/rbac";
-import { lenientFilter } from "@/lib/reports/filter";
 import { capacityRows } from "@/lib/reports/chart-data";
-import { runReport } from "@/lib/services/reports";
 import { CapacityBars } from "@/components/charts/capacity-bars";
 import { Legend } from "@/components/charts/chart-card";
 import { ReportShell } from "../_components/report-shell";
 import { ReportChartCard } from "../_components/report-cards";
+import { loadReport, NoAcademicYear } from "../_components/report-access";
 import { tableOf } from "../_components/tables";
 
 export const metadata = { title: "Seat utilisation" };
@@ -21,8 +19,8 @@ export default async function SeatsReport({
 }: {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
-  const user = await requireStaff("reports:read");
-  const result = await runReport(user, "seats", lenientFilter(await searchParams));
+  const { user, result } = await loadReport("seats", searchParams);
+  if (!result) return <NoAcademicYear user={user} slug="seats" />;
   const canExport = can(user.role, "reports:export");
   const table = tableOf(result, "by-class");
   return (

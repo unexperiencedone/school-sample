@@ -6,10 +6,11 @@ import { CheckCircle2, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { track } from "@/lib/analytics";
 import { formatDate } from "@/lib/dates";
-import { STEPS, type StaffApplicationData, type StepKey } from "@/lib/schemas/staff-application";
+import { gapsFor, STEPS, type StaffApplicationData, type StepKey } from "@/lib/schemas/staff-application";
 import { cn } from "@/lib/utils";
 import { ApiFailure, fetchDraft, postApplication } from "./api";
-import { currentMonthIst, FORM_SCHEMAS, gapsFor, type Issue } from "./rules";
+import { useAlertFocus } from "./fields";
+import { currentMonthIst, FORM_SCHEMAS, type Issue } from "./rules";
 import {
   CurrentStep,
   DeclarationStep,
@@ -29,7 +30,7 @@ type Session = { id: string; ref: string; token: string };
 type SaveState =
   | { kind: "idle" }
   | { kind: "saving" }
-  | { kind: "saved"; at: Date }
+  | { kind: "saved"; at: Date; emailNotSent: boolean }
   | { kind: "unsaved" }
   | { kind: "error"; message: string };
 
@@ -80,6 +81,7 @@ export function StaffApplicationForm({
   const [problem, setProblem] = useState<string | null>(null);
   const [issues, setIssues] = useState<Partial<Record<StepKey, Issue[]>>>({});
   const [busy, setBusy] = useState(false);
+  const problemAlert = useAlertFocus();
   const session = useRef<Session | null>(null);
   const queue = useRef<Promise<unknown>>(Promise.resolve());
 
@@ -138,12 +140,14 @@ export function StaffApplicationForm({
           writeSession(created);
           setRef(res.ref);
         }
-        setSave({ kind: "saved", at: new Date() });
+        setSave({ kind: "saved", at: new Date(), emailNotSent: res.resumeEmailSent === false });
         return true;
       } catch (e) {
         const message = failWith(e, index);
         setSave({ kind: "error", message });
         setProblem(message);
+        // Fields the server flagged take focus themselves; anything else is announced and scrolled to here.
+        if (!(e instanceof ApiFailure && e.details.issues?.length)) problemAlert.announce();
         return false;
       }
     });
@@ -202,7 +206,12 @@ export function StaffApplicationForm({
           go(f.details.firstStep - 1);
         }
       }
-      return { ok: false, message: failWith(e), captcha: f?.code === "CAPTCHA_FAILED" };
+      return {
+        ok: false,
+        message: failWith(e),
+        captcha: f?.code === "CAPTCHA_FAILED",
+        flagged: !!f?.details.steps?.declaration?.length,
+      };
     } finally {
       setBusy(false);
     }
@@ -346,7 +355,12 @@ export function StaffApplicationForm({
         </p>
       )}
       {problem && (
-        <p role="alert" className="mb-6 rounded-md bg-danger-bg px-4 py-3 text-sm text-danger">
+        <p
+          ref={problemAlert.ref}
+          tabIndex={-1}
+          role="alert"
+          className="mb-6 rounded-md bg-danger-bg px-4 py-3 text-sm text-danger"
+        >
           {problem}
         </p>
       )}
@@ -448,6 +462,7 @@ function SaveLabel({ state }: { state: SaveState }) {
         <span className="inline-flex items-center gap-1.5 text-success">
           <CheckCircle2 className="size-4" aria-hidden />
           Saved at {state.at.toLocaleTimeString("en-IN", { hour: "numeric", minute: "2-digit" })}
+          {state.emailNotSent && ". No new resume email was sent."}
         </span>
       );
     case "unsaved":

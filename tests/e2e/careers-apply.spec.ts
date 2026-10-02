@@ -60,6 +60,8 @@ async function resumeLinkFor(request: APIRequestContext, email: string): Promise
 }
 
 const next = (page: Page) => page.getByRole("button", { name: "Save and continue" }).click();
+/** The error summary that takes focus when a step fails validation. */
+const summary = (page: Page) => page.getByRole("alert").filter({ hasText: /answers? to fix/ });
 const step = (page: Page, n: number) =>
   expect(page.getByRole("heading", { name: new RegExp(`^Step ${n} of 9`) })).toBeVisible();
 
@@ -86,7 +88,12 @@ test("nine steps: gap warning, save, resume from the emailed link in a new brows
 
   // 1. Personal: client validation first
   await next(page);
-  await expect(page.getByText("Please enter a name")).toBeVisible();
+  await expect(page.getByText("Please enter a name", { exact: true })).toBeVisible();
+  await expect(summary(page)).toBeFocused();
+  await summary(page)
+    .getByRole("link", { name: /Full name: Please enter a name/ })
+    .click();
+  await expect(page.locator("#fullName")).toBeFocused();
   await page.getByLabel(/^Title\*?$/).selectOption("Ms");
   await page.getByLabel("Full name").fill(name);
   await page.getByLabel("Date of birth").fill("1988-04-12");
@@ -129,7 +136,20 @@ test("nine steps: gap warning, save, resume from the emailed link in a new brows
 
   // 4. Current employment
   await step(page, 4);
+  // Controller-backed controls are reachable from the summary: the yes/no radios, then the month select
+  await next(page);
+  await expect(summary(page)).toBeFocused();
+  await summary(page)
+    .getByRole("link", { name: /Currently employed/ })
+    .click();
+  await expect(page.getByLabel("Yes", { exact: true })).toBeFocused();
   await page.getByLabel("Yes", { exact: true }).check();
+  await next(page);
+  await expect(summary(page)).toBeFocused();
+  await summary(page)
+    .getByRole("link", { name: /Started: / })
+    .click();
+  await expect(page.locator("#since-month")).toBeFocused();
   await page.locator("#employer").fill("Sample School");
   await page.locator("#role").fill("Teacher of History");
   await pickMonth(page, "since", "06", "2019");
@@ -174,7 +194,7 @@ test("nine steps: gap warning, save, resume from the emailed link in a new brows
   // 6. Interests: checkbox chips
   await step(page2, 6);
   await next(page2);
-  await expect(page2.getByText("Choose at least one subject or area")).toBeVisible();
+  await expect(page2.getByText("Choose at least one subject or area", { exact: true })).toBeVisible();
   await page2.getByText("History", { exact: true }).click();
   await page2.getByText("Geography", { exact: true }).click();
   await expect(page2.getByLabel("History", { exact: true })).toBeChecked();
@@ -187,7 +207,7 @@ test("nine steps: gap warning, save, resume from the emailed link in a new brows
   await page2.locator("#statement").fill(words(10));
   await expect(page2.getByText(/10 words/)).toBeVisible();
   await next(page2);
-  await expect(page2.getByText("Write at least 150 words")).toBeVisible();
+  await expect(page2.getByText("Write at least 150 words", { exact: true })).toBeVisible();
   await page2.locator("#statement").fill(words(160));
   await expect(page2.getByText(/160 words/)).toBeVisible();
   await next(page2);
@@ -205,14 +225,18 @@ test("nine steps: gap warning, save, resume from the emailed link in a new brows
     await page2.locator(`#ref-${i}-email`).fill(`referee${i}.${stamp}@example.com`);
   }
   await next(page2);
-  await expect(page2.getByText(/One referee must be your current/)).toBeVisible();
+  await expect(
+    page2.locator("p[role=alert]", {
+      hasText: "One referee must be your current (or most recent) employer",
+    }),
+  ).toBeVisible();
   await page2.locator("#ref-0-current").check();
   await next(page2);
 
   // 9. Declaration: validation, conditional detail, then submit
   await step(page2, 9);
   await page2.getByRole("button", { name: "Submit application" }).click();
-  await expect(page2.getByText("Please confirm the safeguarding statement")).toBeVisible();
+  await expect(page2.getByText("Please confirm the safeguarding statement", { exact: true })).toBeVisible();
   await expect(page2.getByText("Please answer this question").first()).toBeVisible();
   await page2.locator("#safeguarding").check();
   const convictions = page2.getByRole("group", { name: /convicted of a criminal offence/ });
@@ -224,7 +248,9 @@ test("nine steps: gap warning, save, resume from the emailed link in a new brows
     .getByLabel("No")
     .check();
   await page2.getByRole("button", { name: "Submit application" }).click();
-  await expect(page2.getByText("Please give details so we can consider them fairly")).toBeVisible();
+  await expect(
+    page2.getByText("Please give details so we can consider them fairly", { exact: true }),
+  ).toBeVisible();
   await convictions.getByLabel("No", { exact: true }).check();
   await expect(page2.locator("#convictionsDetail")).toHaveCount(0);
   await page2.getByRole("button", { name: "Submit application" }).click();

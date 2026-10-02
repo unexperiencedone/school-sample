@@ -6,6 +6,7 @@ import { ApiError } from "@/lib/api";
 import { audit } from "@/lib/audit";
 import { formatDate } from "@/lib/dates";
 import { sendTemplate } from "@/lib/notify";
+import { rateLimit } from "@/lib/rate-limit";
 import { createUpload } from "@/lib/services/uploads";
 import { school, siteUrl } from "@/config/school";
 import { safeEqual, sha256Hex } from "@/integrations/crypto";
@@ -36,6 +37,8 @@ import {
  */
 
 export const RESUME_TTL_DAYS = 14;
+/** Resume-link emails one address may receive per day, however many drafts or saves ask for them. */
+export const RESUME_EMAILS_PER_ADDRESS_PER_DAY = 3;
 /** Ceiling on certificate files per application (education rows are capped at 12). */
 export const MAX_UPLOADS_PER_APPLICATION = 24;
 
@@ -90,6 +93,8 @@ export type SaveResult = {
   currentStep: number;
   /** Present only on the call that created the draft. */
   resumeToken?: string;
+  /** Present only when this save asked for a resume email (a new draft, or a changed address); false if none went out. */
+  resumeEmailSent?: boolean;
 };
 
 const asData = (v: Prisma.JsonValue): StaffApplicationData =>
@@ -168,8 +173,22 @@ async function assertCertificatesOwned(applicationId: string, items: { certifica
   if (issues.length) throw validationError(3, issues);
 }
 
-async function emailResumeLink(applicationId: string, email: string, token: string) {
+/**
+ * Emails the resume link, at most `RESUME_EMAILS_PER_ADDRESS_PER_DAY` times a day to one address (the key is a hash of
+ * the lowercased address, so the limiter never stores it). Returns whether a mail was queued. Neither a limit nor a mail
+ * failure may lose the save: the applicant still holds the token in their browser.
+ */
+async function emailResumeLink(applicationId: string, email: string, token: string): Promise<boolean> {
   try {
+    const rl = await rateLimit(
+      `staff-app-resume:${sha256Hex(email.toLowerCase())}`,
+      RESUME_EMAILS_PER_ADDRESS_PER_DAY,
+      86_400,
+    );
+    if (!rl.ok) {
+      console.warn("staff-application resume email skipped: address limit reached", { applicationId });
+      return false;
+    }
     await sendTemplate({
       template: "staff-application-resume",
       to: { email },
@@ -177,9 +196,10 @@ async function emailResumeLink(applicationId: string, email: string, token: stri
       channels: ["EMAIL"],
       related: { type: "staff-application", id: applicationId },
     });
+    return true;
   } catch (err) {
-    // The applicant still holds the token in their browser; a mail failure must not lose the save.
     console.error("staff-application resume email failed", err);
+    return false;
   }
 }
 
@@ -216,8 +236,15 @@ async function createDraft(key: StepKey, input: SaveInput, value: unknown): Prom
           resumeTokenHash: hashResumeToken(token),
         },
       });
-      await emailResumeLink(app.id, app.email, token);
-      return { id: app.id, ref: app.ref, status: "DRAFT", currentStep: app.currentStep, resumeToken: token };
+      const resumeEmailSent = await emailResumeLink(app.id, app.email, token);
+      return {
+        id: app.id,
+        ref: app.ref,
+        status: "DRAFT",
+        currentStep: app.currentStep,
+        resumeToken: token,
+        resumeEmailSent,
+      };
     } catch (err) {
       const duplicateRef = err instanceof Prisma.PrismaClientKnownRequestError && err.code === "P2002";
       if (!duplicateRef) throw err;
@@ -253,8 +280,9 @@ async function updateDraft(
   });
   if (res.count === 0)
     throw new ApiError(409, "ALREADY_SUBMITTED", "This application has already been submitted.");
-  if (email && email !== app.email && token) await emailResumeLink(app.id, email, token);
-  return { id: app.id, ref: app.ref, status: "DRAFT", currentStep };
+  const base: SaveResult = { id: app.id, ref: app.ref, status: "DRAFT", currentStep };
+  if (!email || !token || email.toLowerCase() === app.email.toLowerCase()) return base;
+  return { ...base, resumeEmailSent: await emailResumeLink(app.id, email, token) };
 }
 
 /** Everything the form needs to continue a draft. A submitted application returns its status and reference only. */

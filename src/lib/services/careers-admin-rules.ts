@@ -1,15 +1,10 @@
 import { z } from "zod";
 import type { StaffAppStatus } from "@prisma/client";
-import {
-  applicantName,
-  employmentGaps,
-  type Gap,
-  type StaffApplicationData,
-} from "../schemas/staff-application";
+import { applicantName, type StaffApplicationData } from "../schemas/staff-application";
 
 /**
  * Pure rules for the careers CRM: pipeline stages and allowed moves, the scorecard, vacancy and staff input schemas,
- * safeguarding flags and employment gaps. No database and no server-only imports, so the seed, the client components
+ * and safeguarding flags (employment gaps live in the shared application schema). No database and no server-only imports, so the seed, the client components
  * and the unit tests can all share it (relative imports only, for the same reason).
  */
 
@@ -137,14 +132,6 @@ export function safeguardingFlags(data: StaffApplicationData): SafeguardingFlag[
       detail: d.pendingActionDetail?.trim() || "No details were given.",
     });
   return flags;
-}
-
-/** Gaps of three months or more between jobs. The current post runs to `now`; someone not employed has a gap since their last job. */
-export function applicationGaps(data: StaffApplicationData, now: string): Gap[] {
-  const jobs = (data.history?.items ?? []).map((j) => ({ from: j.from, to: j.to }));
-  if (data.current?.employed && data.current.since) jobs.push({ from: data.current.since, to: now });
-  else if (jobs.length > 0) jobs.push({ from: now, to: now });
-  return employmentGaps(jobs, now);
 }
 
 const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];

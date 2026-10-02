@@ -2900,6 +2900,29 @@
         }
       }
     },
+    "/api/uploads/complete": {
+      "post": {
+        "summary": "Called by the browser after it uploaded straight to the object store (S3). The server fetches the file back, checks its size and magic bytes and runs the scan hook; a bad file is deleted",
+        "tags": ["Public"],
+        "security": [],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "422": {
+            "description": "Validation failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/uploads/local": {
       "put": {
         "summary": "Receiver for the local storage adapter's signed upload URLs",

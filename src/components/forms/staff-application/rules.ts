@@ -4,7 +4,6 @@ import {
   STEP_SCHEMAS,
   currentStep,
   declarationStep,
-  employmentGaps,
   personalStep,
   statementStep,
   type Gap,
@@ -65,6 +64,8 @@ const currentForm = currentStep.superRefine((v, ctx) => {
   if (!v.employer?.trim()) add(ctx, "employer", "Enter your current employer");
   if (!v.role?.trim()) add(ctx, "role", "Enter your job title");
   if (!v.since) add(ctx, "since", "Choose the month you started");
+  else if (MONTH.test(v.since) && v.since > currentMonthIst())
+    add(ctx, "since", "The start month can't be in the future");
 });
 
 const statementForm = statementStep.superRefine((v, ctx) => {
@@ -144,24 +145,6 @@ const MONTH_NAMES = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Se
 export function monthLabel(month: string): string {
   if (!MONTH.test(month)) return month;
   return `${MONTH_NAMES[Number(month.slice(5, 7)) - 1]} ${month.slice(0, 4)}`;
-}
-
-/** Jobs to test for gaps: every well-formed history row plus the current post (which runs to the current month). */
-export function jobsForGaps(
-  data: Pick<StaffApplicationData, "history" | "current">,
-  now: string,
-): { from: string; to: string }[] {
-  const jobs = (data.history?.items ?? [])
-    .filter((j) => MONTH.test(j.from ?? "") && MONTH.test(j.to ?? "") && j.to >= j.from)
-    .map((j) => ({ from: j.from, to: j.to }));
-  const cur = data.current;
-  if (cur?.employed && cur.since && MONTH.test(cur.since) && cur.since <= now)
-    jobs.push({ from: cur.since, to: now });
-  return jobs;
-}
-
-export function gapsFor(data: Pick<StaffApplicationData, "history" | "current">, now: string): Gap[] {
-  return employmentGaps(jobsForGaps(data, now), now);
 }
 
 export function describeGap(g: Gap): string {

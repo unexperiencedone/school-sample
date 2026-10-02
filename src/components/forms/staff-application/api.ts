@@ -7,6 +7,8 @@ export type SaveResponse = {
   status: "DRAFT" | "RECEIVED";
   currentStep: number;
   resumeToken?: string;
+  /** Set when this save asked for a resume email; false means none was sent. */
+  resumeEmailSent?: boolean;
 };
 
 export type DraftResponse = {

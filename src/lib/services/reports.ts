@@ -7,8 +7,8 @@ import { audit } from "@/lib/audit";
 import { formatDate, formatDateTime, istDateOnly } from "@/lib/dates";
 import { formatINR } from "@/lib/money";
 import { AGEING_BUCKETS } from "@/lib/reports/ageing";
-import { REPORT_META, REPORT_SLUGS, type ReportSlug } from "@/lib/reports/catalog";
-import { apportionToFeeHeads, NO_FEE_HEAD } from "@/lib/reports/collections";
+import { REPORT_META, reportsFor, type ReportSlug } from "@/lib/reports/catalog";
+import { apportionToFeeHeads, NO_FEE_HEAD, summariseReceipts } from "@/lib/reports/collections";
 import { reportCsv } from "@/lib/reports/csv";
 import {
   reportFilterSchema,
@@ -44,7 +44,9 @@ import { seatsForIntake, type SeatRow } from "./dashboard";
 
 /**
  * Reports (module 13). Every report is built once, as typed tables, and the page, the CSV and the XLSX all render
- * those same tables. Reading needs `reports:read`; downloading needs `reports:export` and is audited.
+ * those same tables. Reading needs `reports:read`, downloading needs `reports:export` and is audited, and each
+ * report also needs the permission of the data it shows (see `REPORT_META`), so a role never sees through a report
+ * what it could not open on its own screen.
  */
 
 type Actor = { id: string; role: Role };
@@ -89,39 +91,32 @@ const METHOD_LABEL: Record<PaymentMethod, string> = {
   WALLET: "Wallet",
 };
 
-const UNALLOCATED = "Registration and other receipts (no invoice)";
+const WALLET_CREDIT = "Overpayment credited to wallet";
+
+const OTHER_LABEL = {
+  REGISTRATION: "Registration fees",
+  IMPREST_TOPUP: "Pocket-money top-ups",
+  UNALLOCATED: "Payments not applied to any invoice",
+} as const;
 
 async function collections({ w }: Ctx): Promise<Body> {
-  const received: Prisma.PaymentWhereInput = {
-    status: { not: "FAILED" },
-    receivedAt: { gte: w.start, lt: w.end },
-  };
   const billedWhere: Prisma.InstalmentWhereInput = {
     status: { not: "WAIVED" },
     dueDate: { gte: w.startDate, lt: w.endDate },
     invoice: { status: { notIn: ["VOID", "WAIVED", "DRAFT"] } },
   };
   const months = monthWindows(w);
-  const [monthAggs, methodGroups, allocations, billedPrincipal, billedLate, feeHeads] = await Promise.all([
-    Promise.all(
-      months.map((m) =>
-        db.payment.aggregate({
-          where: { status: { not: "FAILED" }, receivedAt: { gte: m.start, lt: m.end } },
-          _count: true,
-          _sum: { amountPaise: true, refundedPaise: true },
-        }),
-      ),
-    ),
-    db.payment.groupBy({
-      by: ["method"],
-      where: received,
-      _count: true,
-      _sum: { amountPaise: true, refundedPaise: true },
-    }),
-    db.paymentAllocation.groupBy({
-      by: ["invoiceId"],
-      where: { payment: received },
-      _sum: { amountPaise: true },
+  const [payments, billedPrincipal, billedLate, feeHeads] = await Promise.all([
+    db.payment.findMany({
+      where: { status: { not: "FAILED" }, receivedAt: { gte: w.start, lt: w.end } },
+      select: {
+        method: true,
+        receivedAt: true,
+        amountPaise: true,
+        refundedPaise: true,
+        order: { select: { purpose: true } },
+        allocations: { select: { invoiceId: true, amountPaise: true } },
+      },
     }),
     db.instalment.groupBy({ by: ["invoiceId"], where: billedWhere, _sum: { amountPaise: true } }),
     db.instalment.groupBy({
@@ -131,8 +126,18 @@ async function collections({ w }: Ctx): Promise<Body> {
     }),
     db.feeHead.findMany({ select: { code: true, name: true } }),
   ]);
-
-  const allocated = new Map(allocations.map((a) => [a.invoiceId, n0(a._sum.amountPaise)]));
+  const summary = summariseReceipts(
+    payments.map((p) => ({
+      method: p.method,
+      receivedAt: p.receivedAt,
+      amountPaise: p.amountPaise,
+      refundedPaise: p.refundedPaise,
+      orderPurpose: p.order?.purpose ?? null,
+      allocations: p.allocations,
+    })),
+    months,
+  );
+  const allocated = summary.allocatedByInvoice;
   const billed = new Map<string, number>();
   for (const b of billedPrincipal) billed.set(b.invoiceId, n0(b._sum.amountPaise));
   for (const b of billedLate)
@@ -150,13 +155,14 @@ async function collections({ w }: Ctx): Promise<Body> {
     }),
   ]);
 
-  const gross = sumOf(methodGroups.map((g) => n0(g._sum.amountPaise)));
-  const refunded = sumOf(methodGroups.map((g) => n0(g._sum.refundedPaise)));
-  const receipts = sumOf(methodGroups.map((g) => g._count));
+  const { gross, refunded, receipts } = summary.fee;
   const net = gross - refunded;
   const billedTotal = sumOf([...billed.values()]);
-  const allocatedTotal = sumOf([...allocated.values()]);
-  const unallocated = Math.max(0, gross - allocatedTotal);
+  const walletCredit = summary.walletCredit;
+  const otherKinds = Object.keys(OTHER_LABEL) as (keyof typeof OTHER_LABEL)[];
+  const otherGross = sumOf(otherKinds.map((k) => summary.other[k].gross));
+  const otherRefunded = sumOf(otherKinds.map((k) => summary.other[k].refunded));
+  const otherReceipts = sumOf(otherKinds.map((k) => summary.other[k].receipts));
 
   const byClass = new Map<string, { name: string; order: number; billed: number; collected: number }>();
   for (const inv of invoices) {
@@ -177,26 +183,28 @@ async function collections({ w }: Ctx): Promise<Body> {
     .sort((a, b) => b.paise - a.paise || a.name.localeCompare(b.name));
 
   const monthRows: ReportCell[][] = months.map((m, i) => {
-    const g = n0(monthAggs[i]!._sum.amountPaise);
-    const r = n0(monthAggs[i]!._sum.refundedPaise);
-    return [formatDate(m.start, "MMM yyyy"), monthAggs[i]!._count, g, r, g - r];
+    const { receipts: count, gross: g, refunded: r } = summary.feeByMonth[i]!;
+    return [formatDate(m.start, "MMM yyyy"), count, g, r, g - r];
   });
 
   const classRows: ReportCell[][] = [...byClass.values()]
     .filter((c) => c.billed !== 0 || c.collected !== 0)
     .sort((a, b) => a.order - b.order)
     .map((c) => [c.name, c.billed, c.collected, ratioBp(c.collected, c.billed)]);
-  if (unallocated > 0) classRows.push([UNALLOCATED, null, unallocated, null]);
+  if (walletCredit > 0) classRows.push([WALLET_CREDIT, null, walletCredit, null]);
 
   const headRows: ReportCell[][] = byHead.map((h) => [h.name, h.paise, ratioBp(h.paise, gross)]);
-  if (unallocated > 0) headRows.push([UNALLOCATED, unallocated, ratioBp(unallocated, gross)]);
+  if (walletCredit > 0) headRows.push([WALLET_CREDIT, walletCredit, ratioBp(walletCredit, gross)]);
 
-  const methodRows: ReportCell[][] = [...methodGroups]
-    .sort((a, b) => n0(b._sum.amountPaise) - n0(a._sum.amountPaise) || a.method.localeCompare(b.method))
-    .map((g) => {
-      const gr = n0(g._sum.amountPaise);
-      const rf = n0(g._sum.refundedPaise);
-      return [METHOD_LABEL[g.method], g._count, gr, rf, gr - rf];
+  const methodRows: ReportCell[][] = [...summary.feeByMethod]
+    .sort(([am, a], [bm, b]) => b.gross - a.gross || am.localeCompare(bm))
+    .map(([method, t]) => [METHOD_LABEL[method], t.receipts, t.gross, t.refunded, t.gross - t.refunded]);
+
+  const otherRows: ReportCell[][] = otherKinds
+    .filter((k) => summary.other[k].receipts > 0)
+    .map((k) => {
+      const t = summary.other[k];
+      return [OTHER_LABEL[k], t.receipts, t.gross, t.refunded, t.gross - t.refunded];
     });
 
   const tables: ReportTable[] = [
@@ -204,7 +212,7 @@ async function collections({ w }: Ctx): Promise<Body> {
       id: "by-month",
       title: "Collected by month",
       caption:
-        "Receipts by the IST month they were received; refunds shown separately and netted in the last column.",
+        "Fee receipts by the IST month they were received; refunds shown separately and netted in the last column.",
       columns: [
         col("month", "Month"),
         col("receipts", "Receipts", "count"),
@@ -218,7 +226,8 @@ async function collections({ w }: Ctx): Promise<Body> {
     {
       id: "by-class",
       title: "Billed and collected by class",
-      caption: "Receipts allocated to invoices, before refunds, by the pupil's current class.",
+      caption:
+        "Fee receipts allocated to invoices, before refunds, by the pupil's current class. Overpayments credited to a wallet are on their own row.",
       columns: [
         col("class", "Class"),
         col("billed", "Billed", "inr"),
@@ -231,7 +240,8 @@ async function collections({ w }: Ctx): Promise<Body> {
     {
       id: "by-head",
       title: "Collected by fee head",
-      caption: "Each receipt is spread over its invoice's charge lines in proportion to their amounts.",
+      caption:
+        "Each fee receipt is spread over its invoice's charge lines in proportion to their amounts. Overpayments credited to a wallet are on their own row.",
       columns: [
         col("head", "Fee head"),
         col("collected", "Collected", "inr"),
@@ -243,6 +253,7 @@ async function collections({ w }: Ctx): Promise<Body> {
     {
       id: "by-method",
       title: "Collected by payment method",
+      caption: "Fee receipts only.",
       columns: [
         col("method", "Method"),
         col("receipts", "Receipts", "count"),
@@ -253,19 +264,38 @@ async function collections({ w }: Ctx): Promise<Body> {
       rows: methodRows,
       totals: ["Total", receipts, gross, refunded, net],
     },
+    {
+      id: "other-receipts",
+      title: "Other receipts (not fees)",
+      caption:
+        "Registration fees, pocket-money top-ups and any payment not applied to an invoice. Left out of every fee figure above.",
+      columns: [
+        col("kind", "Receipt"),
+        col("receipts", "Receipts", "count"),
+        col("received", "Received", "inr"),
+        col("refunded", "Refunded", "inr"),
+        col("net", "Net received", "inr"),
+      ],
+      rows: otherRows,
+      totals: ["Total", otherReceipts, otherGross, otherRefunded, otherGross - otherRefunded],
+    },
   ];
 
   const rate = ratioBp(net, billedTotal);
   return {
     period: w.label,
-    headline: { value: inr(net), label: `Net collected, ${w.year.name}` },
+    headline: { value: inr(net), label: `Net fees collected, ${w.year.name}` },
     kpis: [
       {
         label: "Billed",
         value: inr(billedTotal),
         sub: `${formatINR(billedTotal)} falling due in the period`,
       },
-      { label: "Collected", value: inr(gross), sub: `${plural(receipts, "receipt")} · ${formatINR(gross)}` },
+      {
+        label: "Collected",
+        value: inr(gross),
+        sub: `${plural(receipts, "fee receipt")} · ${formatINR(gross)}`,
+      },
       { label: "Refunded", value: inr(refunded), sub: formatINR(refunded) },
       {
         label: "Net collected",
@@ -275,7 +305,8 @@ async function collections({ w }: Ctx): Promise<Body> {
     ],
     tables,
     notes: [
-      "Billed is every instalment falling due in the period, late fees included and waived instalments left out. Collected is every receipt received in it, so families paying ahead can lift the ratio above 100%.",
+      "Billed is every instalment falling due in the period, late fees included and waived instalments left out. Collected is every fee receipt received in it, so families paying ahead can lift the ratio above 100%.",
+      "Fee receipts are payments applied to invoices or instalments, with any overpayment credited to the pupil's wallet. Registration fees, pocket-money top-ups and payments not applied to an invoice are not fees; they are listed under Other receipts and left out of every figure above.",
       "Failed payments are excluded. Class and fee head figures are before refunds; refunds are netted on the month and method tables.",
       "From and To narrow the period within the academic year.",
     ],
@@ -810,12 +841,28 @@ const BUILDERS: Record<ReportSlug, (ctx: Ctx) => Promise<Body>> = {
   seats,
 };
 
-async function build(slug: ReportSlug, raw: ReportFilter, now: Date): Promise<ReportResult> {
-  const filter = reportFilterSchema.parse(raw);
-  const years = await db.academicYear.findMany({
+/** Every academic year, newest first. Empty on a fresh database. */
+const loadYears = (): Promise<YearRef[]> =>
+  db.academicYear.findMany({
     orderBy: { startDate: "desc" },
     select: { id: true, name: true, startDate: true, endDate: true, isCurrent: true },
   });
+
+/** The one error for "reports need an academic year": the export route answers 409 and pages show an empty state. */
+export const noAcademicYear = () =>
+  new ApiError(409, "NO_ACADEMIC_YEAR", "Set up an academic year before running reports");
+
+export const isNoAcademicYear = (e: unknown): e is ApiError =>
+  e instanceof ApiError && e.code === "NO_ACADEMIC_YEAR";
+
+async function build(
+  slug: ReportSlug,
+  raw: ReportFilter,
+  now: Date,
+  years: YearRef[],
+): Promise<ReportResult> {
+  const filter = reportFilterSchema.parse(raw);
+  if (years.length === 0) throw noAcademicYear();
   const w = resolveWindow(filter, years);
   const body = await BUILDERS[slug]({ w, now, years });
   return {
@@ -829,7 +876,11 @@ async function build(slug: ReportSlug, raw: ReportFilter, now: Date): Promise<Re
   };
 }
 
-/** One report for the page. Needs `reports:read`. */
+/**
+ * One report for the page. Needs `reports:read` and the permission the report's data needs (collections:
+ * `payments:read`, outstanding: `fees:read`, funnel: `applications:read`, sources: `leads:read`, seats:
+ * `academics:read`). Throws a 409 `NO_ACADEMIC_YEAR` when no year exists.
+ */
 export async function runReport(
   actor: Actor,
   slug: ReportSlug,
@@ -837,7 +888,8 @@ export async function runReport(
   now = new Date(),
 ): Promise<ReportResult> {
   assertCan(actor.role, "reports:read");
-  return build(slug, filter, now);
+  assertCan(actor.role, REPORT_META[slug].permission);
+  return build(slug, filter, now, await loadYears());
 }
 
 export type HubCard = {
@@ -847,11 +899,20 @@ export type HubCard = {
   headline: ReportResult["headline"];
 };
 
-/** The reports hub: every report with its headline number for the current academic year. */
-export async function reportHub(actor: Actor, now = new Date()): Promise<{ year: string; cards: HubCard[] }> {
+export type Hub =
+  /** The role may view reports, but none whose data it is allowed to see. */
+  { status: "none-allowed" } | { status: "no-year" } | { status: "ready"; year: string; cards: HubCard[] };
+
+/** The reports hub: the reports this role may open, each with its headline number for the current academic year. */
+export async function reportHub(actor: Actor, now = new Date()): Promise<Hub> {
   assertCan(actor.role, "reports:read");
-  const results = await Promise.all(REPORT_SLUGS.map((slug) => build(slug, {}, now)));
+  const slugs = reportsFor(actor.role);
+  if (slugs.length === 0) return { status: "none-allowed" };
+  const years = await loadYears();
+  if (years.length === 0) return { status: "no-year" };
+  const results = await Promise.all(slugs.map((slug) => build(slug, {}, now, years)));
   return {
+    status: "ready",
     year: results[0]!.filter.year,
     cards: results.map((r) => ({
       slug: r.slug,
@@ -883,7 +944,8 @@ export async function exportReport(
   now = new Date(),
 ): Promise<ReportFile> {
   assertCan(actor.role, "reports:export");
-  const report = await build(slug, filter, now);
+  assertCan(actor.role, REPORT_META[slug].permission);
+  const report = await build(slug, filter, now, await loadYears());
   const stamp = `${report.filter.year}-${formatDate(now, "yyyyMMdd")}`;
   let file: ReportFile;
   let rows: number;

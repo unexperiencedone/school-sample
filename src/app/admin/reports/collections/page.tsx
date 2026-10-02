@@ -1,12 +1,10 @@
-import { requireStaff } from "@/lib/auth/session";
 import { can } from "@/lib/rbac";
-import { lenientFilter } from "@/lib/reports/filter";
 import { moneyBars, moneyColumns } from "@/lib/reports/chart-data";
-import { runReport } from "@/lib/services/reports";
 import { ColumnChart } from "@/components/charts/column-chart";
 import { BarList } from "@/components/charts/bar-list";
 import { ReportShell } from "../_components/report-shell";
-import { ReportChartCard } from "../_components/report-cards";
+import { ReportChartCard, ReportTableCard } from "../_components/report-cards";
+import { loadReport, NoAcademicYear } from "../_components/report-access";
 import { tableOf } from "../_components/tables";
 
 export const metadata = { title: "Fee collections" };
@@ -17,12 +15,13 @@ export default async function CollectionsReport({
 }: {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
-  const user = await requireStaff("reports:read");
-  const result = await runReport(user, "collections", lenientFilter(await searchParams));
+  const { user, result } = await loadReport("collections", searchParams);
+  if (!result) return <NoAcademicYear user={user} slug="collections" />;
   const canExport = can(user.role, "reports:export");
   const [month, klass, head, method] = ["by-month", "by-class", "by-head", "by-method"].map((id) =>
     tableOf(result, id),
   );
+  const other = tableOf(result, "other-receipts");
   const card = { result, canExport, className: "min-w-0" };
   return (
     <ReportShell result={result} canExport={canExport}>
@@ -77,6 +76,7 @@ export default async function CollectionsReport({
           />
         }
       />
+      <ReportTableCard {...card} table={other} />
     </ReportShell>
   );
 }

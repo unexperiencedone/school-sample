@@ -238,6 +238,9 @@ test("rejecting from the board asks for a reason and records it", async ({ page 
   await dialog.getByLabel("Reason for rejecting").fill("Does not meet the essential criteria (e2e)");
   await dialog.getByRole("button", { name: "Reject application" }).click();
   await expect(page.getByTestId("column-REJECTED").getByRole("link", { name })).toBeVisible();
+  // The card's select was re-created in the new column; the dialog hands focus back to it and the move is announced
+  await expect(page.getByLabel(`Move ${name} to`)).toBeFocused();
+  await expect(page.getByTestId("board-announcement")).toHaveText(`${name} moved to Rejected`);
   await expect
     .poll(async () => (await testDb.staffApplication.findUniqueOrThrow({ where: { id: app.id } })).status)
     .toBe("REJECTED");

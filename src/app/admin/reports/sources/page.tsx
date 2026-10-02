@@ -1,12 +1,10 @@
 import Link from "next/link";
-import { requireStaff } from "@/lib/auth/session";
 import { can } from "@/lib/rbac";
-import { lenientFilter } from "@/lib/reports/filter";
 import { countBars } from "@/lib/reports/chart-data";
-import { runReport } from "@/lib/services/reports";
 import { BarList } from "@/components/charts/bar-list";
 import { ReportShell, relatedLink } from "../_components/report-shell";
 import { ReportChartCard } from "../_components/report-cards";
+import { loadReport, NoAcademicYear } from "../_components/report-access";
 import { tableOf } from "../_components/tables";
 
 export const metadata = { title: "Lead sources" };
@@ -20,8 +18,8 @@ export default async function SourcesReport({
 }: {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
-  const user = await requireStaff("reports:read");
-  const result = await runReport(user, "sources", lenientFilter(await searchParams));
+  const { user, result } = await loadReport("sources", searchParams);
+  if (!result) return <NoAcademicYear user={user} slug="sources" />;
   const canExport = can(user.role, "reports:export");
   const placement = tableOf(result, "by-placement");
   const campaign = tableOf(result, "by-campaign");

@@ -101,6 +101,27 @@ function providerFor(channel: OutboxChannel): string {
   }
 }
 
+/** Templates whose body carries a live credential (a sign-in or draft-resume link). */
+const CREDENTIAL_TEMPLATES: ReadonlySet<string> = new Set(["magic-link", "staff-application-resume"]);
+
+/**
+ * Once a credential-bearing message has been delivered (or has run out of retries), the link is removed from the
+ * stored copy: anyone who can read the Outbox could otherwise sign in as the recipient. The mock provider keeps
+ * the link because the Outbox *is* the mock inbox (demo and development only).
+ */
+async function scrubCredential(row: { id: string; template: string; provider: string; payload: unknown }) {
+  if (!CREDENTIAL_TEMPLATES.has(row.template) || row.provider === "mock") return;
+  const payload = (row.payload ?? {}) as { data?: Record<string, unknown> };
+  const { url: _url, ...data } = payload.data ?? {};
+  await db.outbox.update({
+    where: { id: row.id },
+    data: {
+      body: "<p>The sign-in link was sent to the recipient. It is not kept here.</p>",
+      payload: { ...payload, data } as Prisma.InputJsonValue,
+    },
+  });
+}
+
 /** Sends one Outbox row through its adapter. Safe to call repeatedly; only QUEUED/FAILED rows are sent. */
 export async function dispatch(outboxId: string): Promise<void> {
   const row = await db.outbox.findUnique({ where: { id: outboxId } });
@@ -129,6 +150,7 @@ export async function dispatch(outboxId: string): Promise<void> {
       where: { id: row.id },
       data: { status: "SENT", sentAt: new Date(), attempts, lastError: null, nextAttemptAt: null },
     });
+    await scrubCredential(row).catch(() => undefined); // a failed scrub must not flip a delivered message to FAILED
   } catch (err) {
     const delay = nextRetryDelayMs(attempts);
     await db.outbox.update({
@@ -140,6 +162,7 @@ export async function dispatch(outboxId: string): Promise<void> {
         nextAttemptAt: delay ? new Date(Date.now() + delay) : null,
       },
     });
+    if (!delay) await scrubCredential(row).catch(() => undefined);
   }
 }
 

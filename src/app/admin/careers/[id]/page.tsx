@@ -7,7 +7,6 @@ import { can } from "@/lib/rbac";
 import { formatDate, formatDateTime } from "@/lib/dates";
 import { getApplication } from "@/lib/services/careers-admin";
 import {
-  applicationGaps,
   displayName,
   monthLabel,
   safeguardingFlags,
@@ -15,7 +14,7 @@ import {
   SCORE_MAX,
   staffFromApplication,
 } from "@/lib/services/careers-admin-rules";
-import { STEPS } from "@/lib/schemas/staff-application";
+import { gapsFor, STEPS } from "@/lib/schemas/staff-application";
 import { PageHeader } from "@/components/crm/page-header";
 import { Card, CardBody, CardHeader, CardTitle } from "@/components/ui/card";
 import { ApplicationStatusBadge, ScoreText } from "../badges";
@@ -79,7 +78,7 @@ export default async function ApplicationPage({ params }: { params: Promise<{ id
   const { data } = app;
   const name = displayName({ fullName: app.fullName, email: app.email, data });
   const flags = safeguardingFlags(data);
-  const gaps = applicationGaps(data, formatDate(new Date(), "yyyy-MM"));
+  const gaps = gapsFor(data, formatDate(new Date(), "yyyy-MM"));
   const p = data.personal;
   const f = data.family;
   const dec = data.declaration;

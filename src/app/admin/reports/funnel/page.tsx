@@ -1,11 +1,9 @@
-import { requireStaff } from "@/lib/auth/session";
 import { can } from "@/lib/rbac";
-import { lenientFilter } from "@/lib/reports/filter";
 import { daysBars, funnelBars } from "@/lib/reports/chart-data";
-import { runReport } from "@/lib/services/reports";
 import { BarList } from "@/components/charts/bar-list";
 import { ReportShell } from "../_components/report-shell";
 import { ReportChartCard } from "../_components/report-cards";
+import { loadReport, NoAcademicYear } from "../_components/report-access";
 import { tableOf } from "../_components/tables";
 
 export const metadata = { title: "Admissions funnel" };
@@ -16,8 +14,8 @@ export default async function FunnelReport({
 }: {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
-  const user = await requireStaff("reports:read");
-  const result = await runReport(user, "funnel", lenientFilter(await searchParams));
+  const { user, result } = await loadReport("funnel", searchParams);
+  if (!result) return <NoAcademicYear user={user} slug="funnel" />;
   const canExport = can(user.role, "reports:export");
   const funnel = tableOf(result, "funnel");
   const stages = tableOf(result, "time-in-stage");

@@ -16,6 +16,15 @@ export function pgConfig(url) {
   return { connectionString: u.toString() };
 }
 
+/** True when the database holds the demo school's own accounts (so overwriting it loses nothing real). */
+export async function looksLikeDemoDatabase(client) {
+  return (await client.query(`select 1 from "User" where email = 'admin@aurelia-sample.test'`)).rowCount > 0;
+}
+
+export async function userCount(client) {
+  return Number((await client.query(`select count(*) as n from "User"`)).rows[0].n);
+}
+
 export async function isSnapshotLoaded(client) {
   return (await client.query(`select 1 from "Setting" where key = $1`, [MARKER])).rowCount > 0;
 }

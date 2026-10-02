@@ -1,6 +1,5 @@
 import { describe, expect, it } from "vitest";
 import {
-  applicationGaps,
   BOARD_STAGES,
   canMoveStage,
   closingInstant,
@@ -18,7 +17,7 @@ import {
   vacancyIsLive,
   vacancyShape,
 } from "@/lib/services/careers-admin-rules";
-import type { StaffApplicationData } from "@/lib/schemas/staff-application";
+import { gapsFor, type StaffApplicationData } from "@/lib/schemas/staff-application";
 
 describe("pipeline moves", () => {
   it("never leaves or enters DRAFT, and never stays put", () => {
@@ -141,14 +140,14 @@ describe("employment gaps", () => {
       current: { employed: true, since: "2023-09" },
       history: { items: [job("2018-06", "2021-05"), job("2021-06", "2023-08")] },
     };
-    expect(applicationGaps(data, "2026-10")).toEqual([]);
+    expect(gapsFor(data, "2026-10")).toEqual([]);
   });
   it("reports a gap of three months or more between jobs", () => {
     const data: StaffApplicationData = {
       current: { employed: true, since: "2024-01" },
       history: { items: [job("2018-06", "2021-05"), job("2021-09", "2023-04")] },
     };
-    expect(applicationGaps(data, "2026-10")).toEqual([
+    expect(gapsFor(data, "2026-10")).toEqual([
       { from: "2021-06", to: "2021-08", months: 3 },
       { from: "2023-05", to: "2023-12", months: 8 },
     ]);
@@ -158,10 +157,10 @@ describe("employment gaps", () => {
       current: { employed: false },
       history: { items: [job("2019-06", "2026-02")] },
     };
-    expect(applicationGaps(data, "2026-10")).toEqual([{ from: "2026-03", to: "2026-09", months: 7 }]);
+    expect(gapsFor(data, "2026-10")).toEqual([{ from: "2026-03", to: "2026-09", months: 7 }]);
   });
   it("ignores someone with no history", () => {
-    expect(applicationGaps({ current: { employed: false } }, "2026-10")).toEqual([]);
+    expect(gapsFor({ current: { employed: false } }, "2026-10")).toEqual([]);
   });
   it("labels months", () => {
     expect(monthLabel("2024-03")).toBe("Mar 2024");

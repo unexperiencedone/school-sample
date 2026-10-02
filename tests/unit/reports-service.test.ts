@@ -2,6 +2,7 @@ import { isDeepStrictEqual } from "node:util";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { loadWorkbook } from "./reports.fixtures";
 import { ForbiddenError } from "@/lib/rbac";
+import { REPORT_SLUGS } from "@/lib/reports/catalog";
 import { reachedWhere, type FunnelLevel } from "@/lib/reports/funnel";
 
 type Rec = Record<string, unknown>;
@@ -24,53 +25,16 @@ const h = vi.hoisted(() => {
   return { state, record };
 });
 
-const monthKey = (args: Args) =>
-  ((args.where?.receivedAt as { gte: Date }).gte as Date).toISOString().slice(0, 10);
 const data = <T>(key: string) => h.state.data[key] as T;
 
 vi.mock("@/lib/db", () => {
   const rec = h.record;
   const db = {
     academicYear: {
-      findMany: async (a: unknown) =>
-        rec("academicYear.findMany", a, [
-          {
-            id: "y27",
-            name: "2027-28",
-            startDate: utc(2027, 4, 1),
-            endDate: utc(2028, 3, 31),
-            isCurrent: false,
-          },
-          {
-            id: "y26",
-            name: "2026-27",
-            startDate: utc(2026, 4, 1),
-            endDate: utc(2027, 3, 31),
-            isCurrent: true,
-          },
-          {
-            id: "y25",
-            name: "2025-26",
-            startDate: utc(2025, 4, 1),
-            endDate: utc(2026, 3, 31),
-            isCurrent: false,
-          },
-        ]),
+      findMany: async (a: unknown) => rec("academicYear.findMany", a, data<Rec[]>("years")),
     },
     payment: {
-      aggregate: async (a: Args) =>
-        rec(
-          "payment.aggregate",
-          a,
-          data<Record<string, Rec>>("monthAggs")[monthKey(a)] ?? {
-            _count: 0,
-            _sum: { amountPaise: null, refundedPaise: null },
-          },
-        ),
-      groupBy: async (a: Args) => rec("payment.groupBy", a, data<Rec[]>("methodGroups")),
-    },
-    paymentAllocation: {
-      groupBy: async (a: Args) => rec("paymentAllocation.groupBy", a, data<Rec[]>("allocations")),
+      findMany: async (a: Args) => rec("payment.findMany", a, data<Rec[]>("payments")),
     },
     instalment: {
       groupBy: async (a: Args) =>
@@ -125,6 +89,31 @@ vi.mock("@/lib/audit", () => ({
 }));
 vi.mock("@/lib/auth/session", () => ({ getCurrentUser: async () => h.state.user }));
 
+const YEARS = [
+  { id: "y27", name: "2027-28", startDate: utc(2027, 4, 1), endDate: utc(2028, 3, 31), isCurrent: false },
+  { id: "y26", name: "2026-27", startDate: utc(2026, 4, 1), endDate: utc(2027, 3, 31), isCurrent: true },
+  { id: "y25", name: "2025-26", startDate: utc(2025, 4, 1), endDate: utc(2026, 3, 31), isCurrent: false },
+];
+
+/** A payment row as the collections report selects it; noon IST on the given day. */
+function pay(p: {
+  at: [number, number, number];
+  method: string;
+  amount: number;
+  refunded?: number;
+  purpose: string | null;
+  alloc: Record<string, number>;
+}) {
+  return {
+    method: p.method,
+    receivedAt: new Date(Date.UTC(p.at[0], p.at[1] - 1, p.at[2], 6, 30)),
+    amountPaise: p.amount,
+    refundedPaise: p.refunded ?? 0,
+    order: p.purpose ? { purpose: p.purpose } : null,
+    allocations: Object.entries(p.alloc).map(([invoiceId, amountPaise]) => ({ invoiceId, amountPaise })),
+  };
+}
+
 const svc = await import("@/lib/services/reports");
 const route = await import("@/app/api/admin/reports/[report]/route");
 
@@ -145,17 +134,41 @@ beforeEach(() => {
     roll: [],
     rollGroups: [],
     appGroups: {},
-    monthAggs: {
-      "2026-03-31": { _count: 2, _sum: { amountPaise: 300_000, refundedPaise: 0 } }, // April, IST
-      "2026-04-30": { _count: 1, _sum: { amountPaise: 200_000, refundedPaise: 50_000 } }, // May, IST
-    },
-    methodGroups: [
-      { method: "CASH", _count: 1, _sum: { amountPaise: 200_000, refundedPaise: 50_000 } },
-      { method: "UPI", _count: 2, _sum: { amountPaise: 300_000, refundedPaise: 0 } },
-    ],
-    allocations: [
-      { invoiceId: "inv1", _sum: { amountPaise: 400_000 } },
-      { invoiceId: "inv2", _sum: { amountPaise: 50_000 } },
+    years: YEARS,
+    openInstalments: [],
+    leadCounts: {},
+    leadGroups: {},
+    events: [],
+    linkedApplications: [],
+    unlinked: 0,
+    payments: [
+      // fee receipts: 450_000 applied to invoices and 50_000 of overpayment credited to a wallet
+      pay({
+        at: [2026, 4, 10],
+        method: "UPI",
+        amount: 250_000,
+        purpose: "INVOICE",
+        alloc: { inv1: 250_000 },
+      }),
+      pay({
+        at: [2026, 4, 20],
+        method: "UPI",
+        amount: 50_000,
+        purpose: "INSTALMENT",
+        alloc: { inv1: 50_000 },
+      }),
+      pay({
+        at: [2026, 5, 5],
+        method: "CASH",
+        amount: 200_000,
+        refunded: 50_000,
+        purpose: null,
+        alloc: { inv1: 100_000, inv2: 50_000 },
+      }),
+      // not fees: a registration fee, a pocket-money top-up and a payment applied to no invoice
+      pay({ at: [2026, 4, 15], method: "UPI", amount: 100_000, purpose: "REGISTRATION", alloc: {} }),
+      pay({ at: [2026, 5, 3], method: "UPI", amount: 500_000, purpose: "IMPREST_TOPUP", alloc: {} }),
+      pay({ at: [2026, 6, 1], method: "CASH", amount: 20_000, refunded: 5_000, purpose: null, alloc: {} }),
     ],
     billedPrincipal: [
       { invoiceId: "inv1", _sum: { amountPaise: 600_000 } },
@@ -179,7 +192,7 @@ beforeEach(() => {
 });
 
 describe("collections report", () => {
-  it("builds month, class, fee head and method tables that all agree with the totals", async () => {
+  it("builds month, class, fee head and method tables from fee receipts only, all agreeing with the totals", async () => {
     const r = await svc.runReport(accounts, "collections", {}, NOW);
     expect(r.period).toBe("2026-27 · 1 Apr 2026 – 31 Mar 2027");
     expect(r.filter).toEqual({ year: "2026-27", from: null, to: null });
@@ -196,7 +209,7 @@ describe("collections report", () => {
     expect(rows(klass)).toEqual([
       ["Year 7", 610_000, 400_000, 6_557],
       ["Year 8", 100_000, 50_000, 5_000],
-      ["Registration and other receipts (no invoice)", null, 50_000, null],
+      ["Overpayment credited to wallet", null, 50_000, null],
     ]);
     expect(klass.totals).toEqual(["Total", 710_000, 500_000, 7_042]);
 
@@ -204,9 +217,8 @@ describe("collections report", () => {
     expect(rows(head)).toEqual([
       ["Tuition", 350_000, 7_000],
       ["Boarding", 100_000, 2_000],
-      ["Registration and other receipts (no invoice)", 50_000, 1_000],
+      ["Overpayment credited to wallet", 50_000, 1_000],
     ]);
-    expect(rows(head).reduce((n, row) => n + (row[1] as number), 0)).toBe(500_000);
 
     const method = table(r, "by-method");
     expect(rows(method)).toEqual([
@@ -214,20 +226,80 @@ describe("collections report", () => {
       ["Cash", 1, 200_000, 50_000, 150_000],
     ]);
 
-    expect(r.headline).toEqual({ value: "₹4,500", label: "Net collected, 2026-27" });
+    expect(r.headline).toEqual({ value: "₹4,500", label: "Net fees collected, 2026-27" });
     expect(r.kpis.map((k) => k.label)).toEqual(["Billed", "Collected", "Refunded", "Net collected"]);
+    expect(r.kpis[1]!.value).toBe("₹5,000");
   });
 
-  it("asks for receipts in IST month windows and leaves failed payments out", async () => {
+  it("makes every fee table equal the headline: rows add up to the totals and the totals to the collected figure", async () => {
+    const r = await svc.runReport(accounts, "collections", {}, NOW);
+    const collected = (id: string, column: number) => {
+      const t = table(r, id);
+      const sum = rows(t).reduce((n, row) => n + (row[column] as number), 0);
+      expect(sum, `${id} rows add up to its total`).toBe(t.totals![column]);
+      return sum;
+    };
+    const fee = collected("by-month", 2);
+    expect(collected("by-class", 2)).toBe(fee);
+    expect(collected("by-head", 1)).toBe(fee);
+    expect(collected("by-method", 2)).toBe(fee);
+    expect(fee).toBe(500_000);
+  });
+
+  it("keeps registration fees, pocket money and unapplied payments out of the fee figures and lists them apart", async () => {
+    const r = await svc.runReport(accounts, "collections", {}, NOW);
+    const other = table(r, "other-receipts");
+    expect(other.title).toBe("Other receipts (not fees)");
+    expect(other.caption).toContain("Registration fees, pocket-money top-ups");
+    expect(rows(other)).toEqual([
+      ["Registration fees", 1, 100_000, 0, 100_000],
+      ["Pocket-money top-ups", 1, 500_000, 0, 500_000],
+      ["Payments not applied to any invoice", 1, 20_000, 5_000, 15_000],
+    ]);
+    expect(other.totals).toEqual(["Total", 3, 620_000, 5_000, 615_000]);
+    expect(r.notes.join(" ")).toContain("Other receipts");
+  });
+
+  it("does not let a pocket-money top-up move the headline in a month with no fee payments", async () => {
+    h.state.data.payments = [
+      pay({ at: [2026, 6, 2], method: "UPI", amount: 500_000, purpose: "IMPREST_TOPUP", alloc: {} }),
+    ];
+    h.state.data.billedPrincipal = [{ invoiceId: "inv1", _sum: { amountPaise: 600_000 } }];
+    h.state.data.billedLate = [];
+    const r = await svc.runReport(accounts, "collections", {}, NOW);
+    expect(r.headline.value).toBe("₹0");
+    expect(r.kpis[3]!.sub).toMatch(/^0\.0%|^0%/);
+    expect(table(r, "by-month").totals).toEqual(["Total", 0, 0, 0, 0]);
+    expect(rows(table(r, "by-method"))).toEqual([]);
+    expect(table(r, "by-class").totals![2]).toBe(0);
+    expect(table(r, "other-receipts").totals).toEqual(["Total", 1, 500_000, 0, 500_000]);
+  });
+
+  it("asks for receipts in the window, leaving failed payments out, and buckets them by IST month", async () => {
     await svc.runReport(accounts, "collections", {}, NOW);
-    const aggregates = h.state.calls.filter((c) => c.fn === "payment.aggregate").map((c) => c.args as Args);
-    expect(aggregates).toHaveLength(12);
-    const april = aggregates[0]!.where!.receivedAt as { gte: Date; lt: Date };
-    expect(april.gte.toISOString()).toBe("2026-03-31T18:30:00.000Z");
-    expect(april.lt.toISOString()).toBe("2026-04-30T18:30:00.000Z");
-    expect(aggregates[0]!.where!.status).toEqual({ not: "FAILED" });
-    const groups = h.state.calls.find((c) => c.fn === "payment.groupBy")!.args as Args;
-    expect(groups.where!.status).toEqual({ not: "FAILED" });
+    const reads = h.state.calls.filter((c) => c.fn === "payment.findMany").map((c) => c.args as Args);
+    expect(reads).toHaveLength(1);
+    expect(reads[0]!.where!.status).toEqual({ not: "FAILED" });
+    const window = reads[0]!.where!.receivedAt as { gte: Date; lt: Date };
+    expect(window.gte.toISOString()).toBe("2026-03-31T18:30:00.000Z");
+    expect(window.lt.toISOString()).toBe("2027-03-31T18:30:00.000Z");
+
+    // 23:50 IST on 30 April and 00:10 IST on 1 May land in different months
+    h.state.data.payments = [
+      {
+        ...pay({ at: [2026, 4, 30], method: "UPI", amount: 1_000, purpose: null, alloc: { inv1: 1_000 } }),
+        receivedAt: new Date("2026-04-30T18:20:00Z"),
+      },
+      {
+        ...pay({ at: [2026, 5, 1], method: "UPI", amount: 2_000, purpose: null, alloc: { inv1: 2_000 } }),
+        receivedAt: new Date("2026-04-30T18:40:00Z"),
+      },
+    ];
+    const r = await svc.runReport(accounts, "collections", {}, NOW);
+    expect(rows(table(r, "by-month")).slice(0, 2)).toEqual([
+      ["Apr 2026", 1, 1_000, 0, 1_000],
+      ["May 2026", 1, 2_000, 0, 2_000],
+    ]);
   });
 
   it("narrows to a typed range", async () => {
@@ -421,14 +493,68 @@ describe("seats report", () => {
 });
 
 describe("access and audit", () => {
-  it("lets reports:read roles view and refuses everyone else", async () => {
-    await expect(svc.runReport({ id: "t", role: "TEACHER" }, "collections", {}, NOW)).rejects.toBeInstanceOf(
-      ForbiddenError,
-    );
-    await expect(svc.reportHub({ id: "t", role: "HOUSEPARENT" }, NOW)).rejects.toBeInstanceOf(ForbiddenError);
-    await expect(svc.runReport({ id: "h", role: "HR" }, "seats", {}, NOW)).resolves.toMatchObject({
-      slug: "seats",
+  const roleOf = (role: string) => ({ id: `u-${role}`, role }) as Parameters<typeof svc.runReport>[0];
+  const READ = ["ADMISSIONS", "REGISTRAR", "HR", "ACCOUNTS", "PRINCIPAL", "SUPER_ADMIN"] as const;
+  const OPENS: Record<(typeof READ)[number], string[]> = {
+    SUPER_ADMIN: ["collections", "outstanding", "funnel", "sources", "seats"],
+    PRINCIPAL: ["collections", "outstanding", "funnel", "sources", "seats"],
+    ACCOUNTS: ["collections", "outstanding", "funnel", "seats"],
+    ADMISSIONS: ["outstanding", "funnel", "sources", "seats"],
+    REGISTRAR: ["outstanding", "funnel", "seats"],
+    HR: [],
+  };
+
+  it("refuses roles without reports:read outright", async () => {
+    await expect(svc.runReport(roleOf("TEACHER"), "seats", {}, NOW)).rejects.toBeInstanceOf(ForbiddenError);
+    await expect(svc.reportHub(roleOf("HOUSEPARENT"), NOW)).rejects.toBeInstanceOf(ForbiddenError);
+  });
+
+  it("lets each role run only the reports whose data it may read", async () => {
+    for (const role of READ) {
+      for (const slug of REPORT_SLUGS) {
+        const run = svc.runReport(roleOf(role), slug, {}, NOW);
+        if (OPENS[role].includes(slug)) await expect(run, `${role} ${slug}`).resolves.toMatchObject({ slug });
+        else await expect(run, `${role} ${slug}`).rejects.toBeInstanceOf(ForbiddenError);
+      }
+    }
+  });
+
+  it("keeps fee reports and named debtor families from HR, and fee collections from Admissions and Registrar", async () => {
+    for (const role of ["HR", "ADMISSIONS", "REGISTRAR"] as const)
+      await expect(svc.runReport(roleOf(role), "collections", {}, NOW)).rejects.toMatchObject({
+        permission: "payments:read",
+      });
+    await expect(svc.runReport(roleOf("HR"), "outstanding", {}, NOW)).rejects.toMatchObject({
+      permission: "fees:read",
     });
+    await expect(svc.runReport(roleOf("REGISTRAR"), "sources", {}, NOW)).rejects.toMatchObject({
+      permission: "leads:read",
+    });
+  });
+
+  it("builds the hub from only the reports the role may open, and reads nothing for the rest", async () => {
+    const accountsHub = await svc.reportHub(accounts, NOW);
+    expect(accountsHub).toMatchObject({ status: "ready", year: "2026-27" });
+    expect(accountsHub.status === "ready" && accountsHub.cards.map((c) => c.slug)).toEqual([
+      "collections",
+      "outstanding",
+      "funnel",
+      "seats",
+    ]);
+
+    h.state.calls = [];
+    const admissions = await svc.reportHub(roleOf("ADMISSIONS"), NOW);
+    expect(admissions.status === "ready" && admissions.cards.map((c) => c.slug)).toEqual([
+      "outstanding",
+      "funnel",
+      "sources",
+      "seats",
+    ]);
+    expect(h.state.calls.some((c) => c.fn === "payment.findMany")).toBe(false);
+
+    h.state.calls = [];
+    await expect(svc.reportHub(roleOf("HR"), NOW)).resolves.toEqual({ status: "none-allowed" });
+    expect(h.state.calls).toEqual([]);
   });
 
   it("lets only reports:export roles download, and leaves no trace when refused", async () => {
@@ -437,6 +563,14 @@ describe("access and audit", () => {
         svc.exportReport({ id: "x", role }, "collections", {}, "csv", undefined, NOW),
       ).rejects.toBeInstanceOf(ForbiddenError);
     }
+    expect(h.state.audits).toEqual([]);
+    expect(h.state.calls).toEqual([]);
+  });
+
+  it("also needs the report's own permission to download it", async () => {
+    await expect(svc.exportReport(accounts, "sources", {}, "csv", undefined, NOW)).rejects.toMatchObject({
+      permission: "leads:read",
+    });
     expect(h.state.audits).toEqual([]);
     expect(h.state.calls).toEqual([]);
   });
@@ -479,6 +613,7 @@ describe("access and audit", () => {
       "Billed and collected by class",
       "Collected by fee head",
       "Collected by payment method",
+      "Other receipts (not fees)",
     ]);
     expect(wb.worksheets[0]!.getCell("A1").value).toBe("Fee collections: Collected by month");
     expect(h.state.audits[0]).toMatchObject({ after: { format: "xlsx", table: "all" } });
@@ -488,6 +623,29 @@ describe("access and audit", () => {
       status: 404,
     });
     expect(h.state.audits).toEqual([]);
+  });
+});
+
+describe("no academic year", () => {
+  beforeEach(() => {
+    h.state.data.years = [];
+  });
+
+  it("is a 409 NO_ACADEMIC_YEAR for a report, never a crash", async () => {
+    for (const slug of REPORT_SLUGS) {
+      const run = svc.runReport(principal, slug, {}, NOW);
+      await expect(run, slug).rejects.toMatchObject({ status: 409, code: "NO_ACADEMIC_YEAR" });
+      await run.catch((e: unknown) => expect(svc.isNoAcademicYear(e)).toBe(true));
+    }
+    await expect(svc.exportReport(principal, "collections", {}, "csv", undefined, NOW)).rejects.toMatchObject(
+      { status: 409, code: "NO_ACADEMIC_YEAR" },
+    );
+    expect(h.state.audits).toEqual([]);
+  });
+
+  it("gives the hub a no-year status and reads no report data", async () => {
+    await expect(svc.reportHub(principal, NOW)).resolves.toEqual({ status: "no-year" });
+    expect(h.state.calls.map((c) => c.fn)).toEqual(["academicYear.findMany"]);
   });
 });
 
@@ -508,6 +666,23 @@ describe("GET /api/admin/reports/[report]", () => {
     expect((await denied.json()).error.code).toBe("FORBIDDEN");
     signIn("REGISTRAR");
     expect((await get("collections", "?format=xlsx")).status).toBe(403);
+    expect(h.state.audits).toEqual([]);
+  });
+
+  it("answers 403 for a report whose data the role may not read, even with reports:export", async () => {
+    signIn("ACCOUNTS");
+    const res = await get("sources", "?format=csv");
+    expect(res.status).toBe(403);
+    expect((await res.json()).error.code).toBe("FORBIDDEN");
+    expect(h.state.audits).toEqual([]);
+  });
+
+  it("answers 409 NO_ACADEMIC_YEAR rather than 500 when no year exists", async () => {
+    h.state.data.years = [];
+    signIn("PRINCIPAL");
+    const res = await get("collections", "?format=csv");
+    expect(res.status).toBe(409);
+    expect((await res.json()).error.code).toBe("NO_ACADEMIC_YEAR");
     expect(h.state.audits).toEqual([]);
   });
 

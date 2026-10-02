@@ -27,11 +27,13 @@ Push to the branch. `package.json` has a `vercel-build` script (`scripts/vercel-
 of `next build`:
 
 1. `prisma migrate deploy` (uses `DATABASE_URL_UNPOOLED` when present),
-2. loads the demo school from `prisma/snapshot/demo.sql.gz` (a few seconds, all-or-nothing) **only if a previous
-   build hasn't already** — a marker row in `Setting` records it, so redeploys never touch your data,
+2. **only when `NEXT_PUBLIC_DEMO_MODE=true`**, loads the demo school from `prisma/snapshot/demo.sql.gz` (a few
+   seconds, all-or-nothing) **unless a previous build already did** — a marker row in `Setting` records it, so
+   redeploys never touch your data. Without demo mode nothing is loaded (the demo accounts have known passwords),
+   and the build refuses to wipe a database that holds other users unless you set `SEED_ON_BUILD=always`,
 3. `next build`.
 
-Open `/login?demo=1` and pick a role. To reset the demo data, redeploy with `SEED_ON_BUILD=always` (wipes everything).
+Open `/login?demo=1` and pick a role. To reset the demo data, sign in as the Super admin and press **Reset the sample school** on `/demo` (about ten seconds, with a one-minute cooldown, only on a database marked as the demo school), or redeploy with `SEED_ON_BUILD=always` (wipes everything).
 
 **Why a snapshot instead of `pnpm db:seed`:** the seed sends thousands of small queries. Next to the database that
 is ~35 s; from Vercel's build machine to a database in another region it takes hours. After changing the seed or the

@@ -50,7 +50,9 @@ To go live on payments: `PAYMENT_PROVIDER=razorpay` plus the three variables. Th
 All three send **template + variables** (templates live in `src/lib/messages/templates.ts`, rendered with React Email
 for email), respect each contact's consent flags, and write every message to the `Outbox` table. In mock mode the
 outbox is the delivery: read it at **Admin → Outbox** (or `/api/dev/outbox` in development). Failed live sends are
-retried with exponential backoff by the `outbox-retry` cron.
+retried with exponential backoff by the `outbox-retry` cron. With a live email provider, the sign-in and
+draft-resume links are removed from the stored copy once delivered (anyone who can read the Outbox could otherwise
+use them); with the mock provider they stay, because the Outbox _is_ the mock inbox.
 
 | Provider | Variables                                                        |
 | -------- | ---------------------------------------------------------------- |
@@ -76,7 +78,10 @@ magic-byte sniffing. A virus-scan hook is a marked placeholder in the upload ser
 - **s3**: AWS S3 or any S3-compatible store, using SigV4 presigned URLs (no SDK). Variables: `S3_BUCKET`,
   `AWS_REGION` (or `S3_REGION`), `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, and for non-AWS stores
   `AWS_ENDPOINT_URL_S3` (or `S3_ENDPOINT`), which switches to path-style URLs. The browser uploads straight to the
-  bucket, so the bucket needs a CORS rule allowing `PUT` from your site's origin.
+  bucket, so the bucket needs a CORS rule allowing `PUT` from your site's origin (the site's Content-Security-Policy
+  already allows the store's origin when `STORAGE_PROVIDER=s3`). Because the bytes never pass through the server,
+  the browser calls `POST /api/uploads/complete` afterwards; the server fetches the file back, checks size and magic
+  bytes, runs the scan hook and deletes anything that fails.
 
 ## Captcha
 

@@ -75,6 +75,12 @@ export async function seed(client: PrismaClient = db, log: (m: string) => void =
   await seedPortalRequests(client, users, SEED_TODAY);
   const messages = await seedOutbox(client);
   step(`${messages} outbox messages`);
+  // Marks this database as the demo school (the deploy build and the Reset action only touch marked databases)
+  await client.setting.upsert({
+    where: { key: "demo_snapshot" },
+    create: { key: "demo_snapshot", value: { loadedAt: new Date().toISOString() } },
+    update: { value: { loadedAt: new Date().toISOString() } },
+  });
   log(`Seeded the sample school in ${((Date.now() - t0) / 1000).toFixed(1)}s`);
 }
 

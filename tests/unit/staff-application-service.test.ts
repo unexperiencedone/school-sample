@@ -31,6 +31,7 @@ const store = vi.hoisted(() => ({
   }[],
   sent: [] as { template: string; to: { email?: string | null }; data?: Record<string, unknown> }[],
   audits: [] as { action: string; entityId?: string | null }[],
+  hits: new Map<string, number>(),
 }));
 
 vi.mock("@/lib/db", () => {
@@ -77,6 +78,13 @@ vi.mock("@/lib/notify", () => ({
   sendTemplate: async (o: (typeof store.sent)[number]) => {
     store.sent.push(o);
     return [];
+  },
+}));
+vi.mock("@/lib/rate-limit", () => ({
+  rateLimit: async (key: string, limit: number) => {
+    const count = (store.hits.get(key) ?? 0) + 1;
+    store.hits.set(key, count);
+    return { ok: count <= limit, retryAfter: 60 };
   },
 }));
 vi.mock("@/lib/audit", () => ({
@@ -142,6 +150,7 @@ describe("saving, resuming and submitting", () => {
   beforeEach(() => {
     store.rows.length = 0;
     store.sent.length = 0;
+    store.hits.clear();
     store.audits.length = 0;
     store.vacancies.length = 0;
     store.vacancies.push({
@@ -187,6 +196,75 @@ describe("saving, resuming and submitting", () => {
     expect(store.sent).toHaveLength(1);
     expect(store.sent[0]!.template).toBe("staff-application-resume");
     expect(String(store.sent[0]!.data?.url)).toContain(`resume=${res.resumeToken}`);
+  });
+
+  describe("resume-link emails", () => {
+    const personalWith = (email: string) => ({ ...app.personal, email });
+    const resumeMails = () => store.sent.filter((m) => m.template === "staff-application-resume");
+
+    it("reports that the creation mail went out", async () => {
+      expect((await create()).resumeEmailSent).toBe(true);
+    });
+
+    it("does not email again when a later save keeps the same address", async () => {
+      const first = await create();
+      const again = await svc.createOrUpdateDraft({
+        id: first.id,
+        token: first.resumeToken,
+        step: 1,
+        data: personalWith("TEST.APPLICANT@example.com"),
+      });
+      expect(again.resumeEmailSent).toBeUndefined();
+      expect(
+        await svc.createOrUpdateDraft({ id: first.id, token: first.resumeToken, step: 2, data: app.family }),
+      ).not.toHaveProperty("resumeEmailSent");
+      expect(resumeMails()).toHaveLength(1);
+    });
+
+    it("emails the new address when the address changes", async () => {
+      const first = await create();
+      const changed = await svc.createOrUpdateDraft({
+        id: first.id,
+        token: first.resumeToken,
+        step: 1,
+        data: personalWith("new.address@example.com"),
+      });
+      expect(changed.resumeEmailSent).toBe(true);
+      expect(resumeMails().map((m) => m.to.email)).toEqual([
+        "test.applicant@example.com",
+        "new.address@example.com",
+      ]);
+    });
+
+    it("caps resume emails per address per day without failing the save", async () => {
+      const first = await create();
+      const flip = (email: string) =>
+        svc.createOrUpdateDraft({
+          id: first.id,
+          token: first.resumeToken,
+          step: 1,
+          data: personalWith(email),
+        });
+      // Mail 1 to the victim was the draft. Bouncing the address back to them twice uses mails 2 and 3.
+      for (let i = 0; i < 2; i++) {
+        expect((await flip("other@example.com")).resumeEmailSent).toBe(true);
+        expect((await flip("Test.Applicant@example.com")).resumeEmailSent).toBe(true);
+      }
+      await flip("other@example.com");
+      const blocked = await flip("test.applicant@example.com");
+      expect(blocked.resumeEmailSent).toBe(false);
+      expect(store.rows[0]!.email).toBe("test.applicant@example.com");
+      expect(resumeMails().filter((m) => m.to.email === "test.applicant@example.com")).toHaveLength(3);
+    });
+
+    it("counts a second draft for the same address against the same limit", async () => {
+      for (let i = 0; i < 3; i++) expect((await create()).resumeEmailSent).toBe(true);
+      const fourth = await create();
+      expect(fourth.resumeEmailSent).toBe(false);
+      expect(fourth.resumeToken).toBeTruthy();
+      expect(store.rows).toHaveLength(4);
+      expect(resumeMails()).toHaveLength(3);
+    });
   });
 
   it("does not return a token on later saves", async () => {

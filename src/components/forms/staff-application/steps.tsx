@@ -11,6 +11,7 @@ import {
   PHASES,
   STATEMENT_WORDS,
   SUBJECTS,
+  gapsFor,
   wordCount,
   type Gap,
   type StaffApplicationData,
@@ -30,9 +31,11 @@ import {
   StepFooter,
   TextareaField,
   TextField,
+  useAlertFocus,
   useServerIssues,
+  useStepSubmit,
 } from "./fields";
-import { currentMonthIst, describeGap, FORM_SCHEMAS, gapsFor, todayIst, type Issue } from "./rules";
+import { currentMonthIst, describeGap, FORM_SCHEMAS, todayIst, type Issue } from "./rules";
 
 /** What every step form receives. `onNext` gets the validated values; `onBack` gets whatever is typed so far. */
 type StepProps = {
@@ -74,13 +77,16 @@ export function PersonalStep({
 }) {
   const form = useForm<PersonalIn, unknown, PersonalOut>({
     resolver: zodResolver(FORM_SCHEMAS.personal),
+    shouldFocusError: false,
     defaultValues: initial,
   });
   const { register, handleSubmit, formState, setError } = form;
   useServerIssues(setError, issues);
+  const { formProps, summary } = useStepSubmit(handleSubmit, onNext);
   const err = (p: string) => errorAt(formState.errors, p);
   return (
-    <form onSubmit={handleSubmit(onNext)} noValidate className={ONE_ROW_FORM}>
+    <form {...formProps} className={ONE_ROW_FORM}>
+      {summary}
       <div className="flex items-start gap-3 rounded-lg bg-info-bg px-4 py-3 text-sm text-info">
         <FileX2 className="mt-0.5 size-5 shrink-0" aria-hidden />
         <p>
@@ -218,14 +224,17 @@ export function FamilyStep({
 }: StepProps & { initial: StaffApplicationData["family"] }) {
   const form = useForm<FamilyIn, unknown, FamilyOut>({
     resolver: zodResolver(FORM_SCHEMAS.family),
+    shouldFocusError: false,
     defaultValues: initial ?? { children: [] },
   });
   const { register, handleSubmit, formState, setError, control, getValues } = form;
   const children = useFieldArray({ control, name: "children" });
   useServerIssues(setError, issues);
+  const { formProps, summary } = useStepSubmit(handleSubmit, onNext, { children: "Child" });
   const err = (p: string) => errorAt(formState.errors, p);
   return (
-    <form onSubmit={handleSubmit(onNext)} noValidate className={ONE_ROW_FORM}>
+    <form {...formProps} className={ONE_ROW_FORM}>
+      {summary}
       <SelectField
         id="maritalStatus"
         label="Marital status"
@@ -338,16 +347,21 @@ export function EducationStep({
 }: StepProps & { initial: StaffApplicationData["education"]; applicationId: string; token: string }) {
   const form = useForm<EducationIn, unknown, EducationOut>({
     resolver: zodResolver(FORM_SCHEMAS.education),
+    shouldFocusError: false,
     defaultValues: initial ?? { items: [blankEducation] },
   });
   const { register, handleSubmit, formState, setError, control, getValues, setValue } = form;
   const rows = useFieldArray({ control, name: "items" });
   const keys = useWatch({ control, name: "items" });
+  const [uploading, setUploading] = useState(0);
+  const trackUpload = useCallback((on: boolean) => setUploading((n) => n + (on ? 1 : -1)), []);
   useServerIssues(setError, issues);
+  const { formProps, summary } = useStepSubmit(handleSubmit, onNext, { items: "Qualification" });
   const err = (p: string) => errorAt(formState.errors, p);
   const rootErr = listError(formState.errors, "items");
   return (
-    <form onSubmit={handleSubmit(onNext)} noValidate className={ONE_ROW_FORM}>
+    <form {...formProps} className={ONE_ROW_FORM}>
+      {summary}
       <p className="text-sm text-muted">
         List your degrees, teaching qualifications and other training, most recent first. You can attach a
         copy of each certificate now or bring originals to interview.
@@ -358,6 +372,7 @@ export function EducationStep({
           legend={`Qualification ${i + 1}`}
           removeLabel={`Remove qualification ${i + 1}`}
           onRemove={rows.fields.length > 1 ? () => rows.remove(i) : undefined}
+          removeDisabled={uploading > 0}
         >
           <TextField
             id={`edu-${i}-qualification`}
@@ -391,12 +406,14 @@ export function EducationStep({
           <input type="hidden" {...register(`items.${i}.certificateKey`)} />
           <CertificateUpload
             id={`edu-${i}-certificate`}
+            name={`items.${i}.certificateKey`}
             slot={`education-${i}`}
             label={`Certificate for qualification ${i + 1}`}
             applicationId={applicationId}
             token={token}
             storedKey={keys?.[i]?.certificateKey || undefined}
             onChange={(key) => setValue(`items.${i}.certificateKey`, key, { shouldDirty: true })}
+            onBusyChange={trackUpload}
           />
           {err(`items.${i}.certificateKey`) && (
             <p role="alert" className="text-xs font-medium text-danger sm:col-span-2">
@@ -413,7 +430,11 @@ export function EducationStep({
       {rows.fields.length < 12 && (
         <AddRowButton onClick={() => rows.append(blankEducation)}>Add a qualification</AddRowButton>
       )}
-      <StepFooter busy={busy} onBack={() => onBack?.(getValues())} />
+      <StepFooter
+        busy={busy}
+        hold={uploading > 0 ? "Wait for the certificate to finish uploading before you continue." : ""}
+        onBack={() => onBack?.(getValues())}
+      />
     </form>
   );
 }
@@ -432,15 +453,18 @@ export function CurrentStep({
 }: StepProps & { initial: StaffApplicationData["current"] }) {
   const form = useForm<CurrentIn, unknown, CurrentOut>({
     resolver: zodResolver(FORM_SCHEMAS.current),
+    shouldFocusError: false,
     defaultValues: initial,
   });
   const { register, handleSubmit, formState, setError, control, getValues } = form;
   const employed = useWatch({ control, name: "employed" });
   useServerIssues(setError, issues);
+  const { formProps, summary } = useStepSubmit(handleSubmit, onNext);
   const err = (p: string) => errorAt(formState.errors, p);
   const employedError = err("employed") && "Please choose yes or no";
   return (
-    <form onSubmit={handleSubmit(onNext)} noValidate className={ONE_ROW_FORM}>
+    <form {...formProps} className={ONE_ROW_FORM}>
+      {summary}
       <Controller
         control={control}
         name="employed"
@@ -500,6 +524,7 @@ export function CurrentStep({
             render={({ field }) => (
               <MonthYearField
                 id="since"
+                name={field.name}
                 label="Started"
                 required
                 value={field.value}
@@ -572,19 +597,22 @@ export function HistoryStep({
 }: StepProps & { initial: StaffApplicationData["history"]; current: StaffApplicationData["current"] }) {
   const form = useForm<HistoryIn, unknown, HistoryOut>({
     resolver: zodResolver(FORM_SCHEMAS.history),
+    shouldFocusError: false,
     defaultValues: initial ?? { items: [] },
   });
   const { register, handleSubmit, formState, setError, control, getValues } = form;
   const rows = useFieldArray({ control, name: "items" });
   const watched = useWatch({ control, name: "items" });
   useServerIssues(setError, issues);
+  const { formProps, summary } = useStepSubmit(handleSubmit, onNext, { items: "Previous job" });
   const err = (p: string) => errorAt(formState.errors, p);
   const gaps = useMemo(
     () => gapsFor({ history: { items: watched ?? [] }, current }, currentMonthIst()),
     [watched, current],
   );
   return (
-    <form onSubmit={handleSubmit(onNext)} noValidate className={ONE_ROW_FORM}>
+    <form {...formProps} className={ONE_ROW_FORM}>
+      {summary}
       <p className="text-sm text-muted">
         Add every job since leaving education, apart from the current one you gave on the last step. If this
         is your first job, leave this blank and continue.
@@ -617,6 +645,7 @@ export function HistoryStep({
             render={({ field }) => (
               <MonthYearField
                 id={`job-${i}-from`}
+                name={field.name}
                 label="From"
                 required
                 value={field.value}
@@ -631,6 +660,7 @@ export function HistoryStep({
             render={({ field }) => (
               <MonthYearField
                 id={`job-${i}-to`}
+                name={field.name}
                 label="To"
                 required
                 value={field.value}
@@ -671,15 +701,18 @@ export function InterestsStep({
 }: StepProps & { initial: StaffApplicationData["interests"] }) {
   const form = useForm<InterestsIn, unknown, InterestsOut>({
     resolver: zodResolver(FORM_SCHEMAS.interests),
+    shouldFocusError: false,
     defaultValues: initial ?? { subjects: [], phases: [] },
   });
   const { register, handleSubmit, formState, setError, control, getValues } = form;
   const subjects = useWatch({ control, name: "subjects" }) ?? [];
   const phases = useWatch({ control, name: "phases" }) ?? [];
   useServerIssues(setError, issues);
+  const { formProps, summary } = useStepSubmit(handleSubmit, onNext);
   const err = (p: string) => errorAt(formState.errors, p);
   return (
-    <form onSubmit={handleSubmit(onNext)} noValidate className="space-y-8">
+    <form {...formProps} className="space-y-8">
+      {summary}
       <ChipGroup
         legend="Subjects and areas you can teach or support"
         hint="Choose up to eight."
@@ -726,16 +759,19 @@ export function StatementStep({
 }: StepProps & { initial: StaffApplicationData["statement"]; gaps: Gap[] }) {
   const form = useForm<StatementIn, unknown, StatementOut>({
     resolver: zodResolver(FORM_SCHEMAS.statement),
+    shouldFocusError: false,
     defaultValues: initial ?? { text: "" },
   });
   const { register, handleSubmit, formState, setError, control, getValues } = form;
   const text = useWatch({ control, name: "text" }) ?? "";
   useServerIssues(setError, issues);
+  const { formProps, summary } = useStepSubmit(handleSubmit, onNext);
   const words = wordCount(text);
   const state = words < STATEMENT_WORDS.min ? "short" : words > STATEMENT_WORDS.max ? "long" : "ok";
   const err = errorAt(formState.errors, "text");
   return (
-    <form onSubmit={handleSubmit(onNext)} noValidate className={ONE_ROW_FORM}>
+    <form {...formProps} className={ONE_ROW_FORM}>
+      {summary}
       <p className="text-sm text-muted">
         Tell us why you want this role and this school, what you would bring, and what you want to learn.
         {gaps.length > 0 && " Please also explain the gaps in your employment listed below."}
@@ -797,15 +833,18 @@ export function ReferencesStep({
 }: StepProps & { initial: StaffApplicationData["references"] }) {
   const form = useForm<ReferencesIn, unknown, ReferencesOut>({
     resolver: zodResolver(FORM_SCHEMAS.references),
+    shouldFocusError: false,
     defaultValues: initial ?? { items: [blankReferee, blankReferee] },
   });
   const { register, handleSubmit, formState, setError, control, getValues } = form;
   const rows = useFieldArray({ control, name: "items" });
   useServerIssues(setError, issues);
+  const { formProps, summary } = useStepSubmit(handleSubmit, onNext, { items: "Referee" });
   const err = (p: string) => errorAt(formState.errors, p);
   const rootErr = listError(formState.errors, "items");
   return (
-    <form onSubmit={handleSubmit(onNext)} noValidate className={ONE_ROW_FORM}>
+    <form {...formProps} className={ONE_ROW_FORM}>
+      {summary}
       <p className="text-sm text-muted" id="references-help">
         Give two referees (up to four). One must be your current employer, or your most recent one if you are
         not working now. Safer recruitment means we may contact referees before interview.
@@ -889,7 +928,10 @@ type DeclarationIn = z.input<typeof FORM_SCHEMAS.declaration>;
 type DeclarationOut = z.output<typeof FORM_SCHEMAS.declaration>;
 
 export type SubmitExtras = { captchaToken?: string; captchaAnswer?: string; website?: string };
-export type SubmitResult = { ok: true } | { ok: false; message: string; captcha?: boolean };
+export type SubmitResult =
+  | { ok: true }
+  /** `flagged`: the server marked fields on this step, and they have already taken focus. */
+  | { ok: false; message: string; captcha?: boolean; flagged?: boolean };
 
 function YesNoQuestion({
   legend,
@@ -963,6 +1005,7 @@ export function DeclarationStep({
 }) {
   const form = useForm<DeclarationIn, unknown, DeclarationOut>({
     resolver: zodResolver(FORM_SCHEMAS.declaration),
+    shouldFocusError: false,
     defaultValues: initial,
   });
   const { register, handleSubmit, formState, setError, control, getValues } = form;
@@ -981,7 +1024,9 @@ export function DeclarationStep({
     setCaptchaError(undefined);
   }, []);
 
-  const submit = handleSubmit(async (values) => {
+  const failureAlert = useAlertFocus();
+
+  const { formProps, summary } = useStepSubmit(handleSubmit, async (values: DeclarationOut) => {
     setFailure(undefined);
     const result = await onSubmit(values, {
       captchaToken: captcha.current.token,
@@ -990,12 +1035,16 @@ export function DeclarationStep({
     });
     if (result.ok) return;
     if (result.captcha) setCaptchaError(result.message);
-    else setFailure(result.message);
+    else {
+      setFailure(result.message);
+      if (!result.flagged) failureAlert.announce();
+    }
     captchaRef.current?.refresh();
   });
 
   return (
-    <form onSubmit={submit} noValidate className={ONE_ROW_FORM}>
+    <form {...formProps} className={ONE_ROW_FORM}>
+      {summary}
       {/* Honeypot: hidden from people and assistive technology. */}
       <div aria-hidden="true" className="absolute -left-[9999px] h-0 overflow-hidden">
         <label htmlFor="declaration-website">Website</label>
@@ -1059,7 +1108,12 @@ export function DeclarationStep({
       />
 
       {failure && (
-        <p role="alert" className="rounded-md bg-danger-bg px-4 py-3 text-sm text-danger">
+        <p
+          ref={failureAlert.ref}
+          tabIndex={-1}
+          role="alert"
+          className="rounded-md bg-danger-bg px-4 py-3 text-sm text-danger"
+        >
           {failure}
         </p>
       )}

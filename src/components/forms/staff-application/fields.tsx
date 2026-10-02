@@ -4,13 +4,14 @@ import {
   forwardRef,
   useEffect,
   useId,
+  useRef,
   useState,
   type InputHTMLAttributes,
   type ReactNode,
   type SelectHTMLAttributes,
   type TextareaHTMLAttributes,
 } from "react";
-import type { FieldValues, Path, UseFormSetError } from "react-hook-form";
+import type { FieldValues, Path, UseFormHandleSubmit, UseFormSetError } from "react-hook-form";
 import { Check, Plus, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Field } from "@/components/ui/field";
@@ -32,7 +33,24 @@ export function listError(errors: unknown, name: string): string | undefined {
   return errorAt(errors, `${name}.root`) ?? errorAt(errors, name);
 }
 
-/** Applies issues returned by the server (after a submit) to the form, so they show next to the fields. */
+/**
+ * The first control for a field path ("items.2.role"), or for a whole repeater ("items.root"), inside the step form.
+ * Fields are found by `name`, which every control carries whether it is registered or Controller-backed. Hidden
+ * inputs can't take focus.
+ */
+export function findField(path: string): HTMLElement | null {
+  const form = document.querySelector("form[data-step-form]");
+  const top = path.split(".")[0] ?? path;
+  const live = ':not([type="hidden"])';
+  return (
+    form?.querySelector<HTMLElement>(`[name="${path}"]${live}`) ??
+    form?.querySelector<HTMLElement>(`[name^="${top}."]${live}`) ??
+    form?.querySelector<HTMLElement>(`[name="${top}"]${live}`) ??
+    null
+  );
+}
+
+/** Applies issues returned by the server (after a save or submit) to the form, and focuses the first flagged field. */
 export function useServerIssues<T extends FieldValues>(
   setError: UseFormSetError<T>,
   issues: Issue[] | undefined,
@@ -43,7 +61,158 @@ export function useServerIssues<T extends FieldValues>(
         type: "server",
         message: i.message,
       });
+    const first = issues?.[0];
+    if (first) findField(first.path)?.focus();
   }, [issues, setError]);
+}
+
+/** Moves focus to the alert it is attached to and scrolls it into view, each time `announce` is called. */
+export function useAlertFocus() {
+  const ref = useRef<HTMLParagraphElement>(null);
+  const [calls, setCalls] = useState(0);
+  useEffect(() => {
+    if (calls === 0) return;
+    ref.current?.focus({ preventScroll: true });
+    ref.current?.scrollIntoView({ block: "center" });
+  }, [calls]);
+  return { ref, announce: () => setCalls((n) => n + 1) };
+}
+
+const FIELD_LABELS: Record<string, string> = {
+  title: "Title",
+  fullName: "Full name",
+  dob: "Date of birth",
+  gender: "Gender",
+  nationality: "Nationality",
+  phone: "Mobile number",
+  email: "Email",
+  address: "Home address",
+  noticeOrAvailability: "Earliest start date or notice period",
+  maritalStatus: "Marital status",
+  name: "Name",
+  emergencyName: "Emergency contact name",
+  emergencyRelation: "Emergency contact relationship",
+  emergencyPhone: "Emergency contact mobile number",
+  qualification: "Qualification",
+  institution: "Institution",
+  year: "Year awarded",
+  grade: "Grade or class",
+  certificateKey: "Certificate",
+  employed: "Currently employed",
+  employer: "Employer",
+  role: "Job title",
+  since: "Started",
+  noticePeriod: "Notice period",
+  reasonForLeaving: "Reason for leaving",
+  from: "From",
+  to: "To",
+  subjects: "Subjects and areas",
+  phases: "Phases",
+  interests: "Interests",
+  text: "Personal statement",
+  organisation: "Organisation",
+  relationship: "How they know you",
+  isCurrentEmployer: "Current employer",
+  safeguarding: "Safeguarding statement",
+  convictions: "Convictions question",
+  convictionsDetail: "Convictions details",
+  pendingAction: "Pending action question",
+  pendingActionDetail: "Pending action details",
+  consent: "Consent",
+  truthful: "Accuracy statement",
+};
+
+/** Keys on an RHF error node that are not child fields. */
+const ERROR_META = new Set(["message", "type", "ref", "types"]);
+
+export type SummaryItem = { path: string; text: string };
+
+/**
+ * Flattens RHF's error tree into one line per problem. `rows` names the repeater at a top-level key
+ * (`{ items: "Referee" }`), so "items.1.email" reads "Referee 2, Email: ...".
+ */
+export function summarise(errors: unknown, rows: Record<string, string> = {}): SummaryItem[] {
+  const out: SummaryItem[] = [];
+  const walk = (node: unknown, path: string[]) => {
+    if (!node || typeof node !== "object") return;
+    const n = node as Record<string, unknown>;
+    if (typeof n.message === "string" && n.message && path.length > 0) {
+      const noun = rows[path[0] ?? ""];
+      const row = noun && /^\d+$/.test(path[1] ?? "") ? `${noun} ${Number(path[1]) + 1}` : undefined;
+      const label = FIELD_LABELS[path[path.length - 1] ?? ""];
+      const where = [row, label].filter(Boolean).join(", ");
+      out.push({
+        path: path.join("."),
+        text: `${where ? `${where}: ` : ""}${friendlyMessage(n.message)}`,
+      });
+    }
+    for (const [k, v] of Object.entries(n)) if (!ERROR_META.has(k)) walk(v, [...path, k]);
+  };
+  walk(errors, []);
+  return out;
+}
+
+/** Short list of what needs fixing. It takes focus when a submit fails; each line moves focus to its field. */
+export const ErrorSummary = forwardRef<HTMLDivElement, { items: SummaryItem[] }>(function ErrorSummary(
+  { items },
+  ref,
+) {
+  if (items.length === 0) return null;
+  return (
+    <div
+      ref={ref}
+      role="alert"
+      tabIndex={-1}
+      className="rounded-md border border-danger/40 bg-danger-bg px-4 py-3 text-sm text-danger"
+    >
+      <p className="font-semibold">
+        {items.length === 1 ? "There is 1 answer to fix" : `There are ${items.length} answers to fix`}
+      </p>
+      <ul className="mt-2 list-disc space-y-1 pl-5">
+        {items.map((i) => (
+          <li key={i.path}>
+            <a
+              href="#"
+              className="underline"
+              onClick={(e) => {
+                e.preventDefault();
+                findField(i.path)?.focus();
+              }}
+            >
+              {i.text}
+            </a>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+});
+
+/**
+ * Wires a step's form for submit: props to spread on the `<form>`, and the error summary to render inside it. A failed
+ * validation focuses the summary (react-hook-form's own focus is off, so Controller-backed fields behave like the rest).
+ */
+export function useStepSubmit<TIn extends FieldValues, TOut>(
+  handleSubmit: UseFormHandleSubmit<TIn, TOut>,
+  onValid: (values: TOut) => unknown,
+  rows?: Record<string, string>,
+) {
+  const [items, setItems] = useState<SummaryItem[]>([]);
+  const summaryRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (items.length > 0) summaryRef.current?.focus();
+  }, [items]);
+  const onSubmit = handleSubmit(
+    (values) => {
+      setItems((s) => (s.length ? [] : s));
+      return onValid(values);
+    },
+    (errors) => setItems(summarise(errors, rows)),
+  );
+  return {
+    formProps: { onSubmit, noValidate: true, "data-step-form": "" },
+    summary: <ErrorSummary ref={summaryRef} items={items} />,
+  };
 }
 
 const describedBy = (id: string, error?: string, hint?: ReactNode) =>
@@ -133,6 +302,7 @@ const MONTHS = [
  */
 export function MonthYearField({
   id,
+  name,
   label,
   value,
   onChange,
@@ -140,6 +310,8 @@ export function MonthYearField({
   required,
 }: {
   id: string;
+  /** The form field name; it goes on the month select so a failed validation can find and focus it. */
+  name: string;
   label: string;
   value: string | undefined;
   onChange: (value: string) => void;
@@ -168,6 +340,7 @@ export function MonthYearField({
       <div className="grid grid-cols-[1.4fr_1fr] gap-2">
         <Select
           id={`${id}-month`}
+          name={name}
           aria-label={`${label}: month`}
           aria-invalid={!!error}
           value={month}
@@ -305,11 +478,13 @@ export function RepeaterRow({
   legend,
   removeLabel,
   onRemove,
+  removeDisabled,
   children,
 }: {
   legend: string;
   removeLabel: string;
   onRemove?: () => void;
+  removeDisabled?: boolean;
   children: ReactNode;
 }) {
   return (
@@ -318,7 +493,13 @@ export function RepeaterRow({
       <div className="grid gap-4 sm:grid-cols-2">{children}</div>
       {onRemove && (
         <div className="mt-4 flex justify-end">
-          <Button type="button" variant="outline" className="min-h-11" onClick={onRemove}>
+          <Button
+            type="button"
+            variant="outline"
+            className="min-h-11"
+            onClick={onRemove}
+            disabled={removeDisabled}
+          >
             <Trash2 aria-hidden /> {removeLabel}
           </Button>
         </div>
@@ -335,26 +516,39 @@ export function AddRowButton({ onClick, children }: { onClick: () => void; child
   );
 }
 
-/** Back / Next row under every step. */
+/**
+ * Back / Next row under every step. While `hold` has text both buttons are off and the text says why (for example a
+ * file still uploading); pass "" when nothing is holding the step so the live region exists before it first speaks.
+ */
 export function StepFooter({
   onBack,
   busy,
+  hold,
   nextLabel = "Save and continue",
 }: {
   onBack?: () => void;
   busy: boolean;
+  hold?: string;
   nextLabel?: string;
 }) {
+  const off = busy || !!hold;
   return (
-    <div className="mt-8 flex flex-wrap gap-3">
-      {onBack && (
-        <Button type="button" variant="outline" size="lg" onClick={onBack} disabled={busy}>
-          Back
-        </Button>
+    <div className="mt-8">
+      {hold !== undefined && (
+        <p role="status" className="text-sm text-muted [&:not(:empty)]:mb-3">
+          {hold}
+        </p>
       )}
-      <Button type="submit" size="lg" disabled={busy}>
-        {busy ? "Saving…" : nextLabel}
-      </Button>
+      <div className="flex flex-wrap gap-3">
+        {onBack && (
+          <Button type="button" variant="outline" size="lg" onClick={onBack} disabled={off}>
+            Back
+          </Button>
+        )}
+        <Button type="submit" size="lg" disabled={off}>
+          {busy ? "Saving…" : nextLabel}
+        </Button>
+      </div>
     </div>
   );
 }

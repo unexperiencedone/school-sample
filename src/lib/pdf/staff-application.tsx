@@ -1,9 +1,8 @@
 import { Text, View } from "@react-pdf/renderer";
 import type { ReactNode } from "react";
 import { formatDate } from "@/lib/dates";
-import { STEPS, type StaffApplicationData } from "@/lib/schemas/staff-application";
+import { gapsFor, STEPS, type StaffApplicationData } from "@/lib/schemas/staff-application";
 import {
-  applicationGaps,
   monthLabel,
   safeguardingFlags,
   SCORE_CRITERIA,
@@ -71,7 +70,7 @@ function Item({ children }: { children: ReactNode }) {
 export function StaffApplicationPdf({ d }: { d: StaffApplicationPdfData }) {
   const { data } = d;
   const flags = safeguardingFlags(data);
-  const gaps = applicationGaps(data, formatDate(new Date(), "yyyy-MM"));
+  const gaps = gapsFor(data, formatDate(new Date(), "yyyy-MM"));
   const p = data.personal;
   const dec = data.declaration;
   return (

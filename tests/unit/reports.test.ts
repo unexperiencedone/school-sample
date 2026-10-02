@@ -4,7 +4,13 @@ import { csvResponse } from "@/lib/crm/csv";
 import { toPaise } from "@/lib/money";
 import { ageingBucket, daysPastDue, outstandingParts } from "@/lib/reports/ageing";
 import { capacityRows, funnelBars, moneyBars, moneyColumns } from "@/lib/reports/chart-data";
-import { apportionToFeeHeads, NO_FEE_HEAD } from "@/lib/reports/collections";
+import {
+  apportionToFeeHeads,
+  classifyReceipt,
+  NO_FEE_HEAD,
+  summariseReceipts,
+  type ReceiptRow,
+} from "@/lib/reports/collections";
 import { csvField, defuseFormula, reportCsv } from "@/lib/reports/csv";
 import {
   addDays,
@@ -513,6 +519,86 @@ describe("fee head apportionment", () => {
     expect(result.get(NO_FEE_HEAD)).toBe(7_777);
     expect([...result.values()].reduce((a, b) => a + b, 0)).toBe(100_001 + 50_000 + 7_777);
     expect(result.has("DISC")).toBe(false);
+  });
+});
+
+describe("receipt classification", () => {
+  const receipt = (over: Partial<ReceiptRow> = {}): ReceiptRow => ({
+    method: "UPI",
+    receivedAt: new Date("2026-05-10T06:30:00Z"),
+    amountPaise: 100_000,
+    refundedPaise: 0,
+    orderPurpose: "INVOICE",
+    allocations: [{ invoiceId: "inv1", amountPaise: 100_000 }],
+    ...over,
+  });
+
+  it("calls only payments applied to invoices fee receipts", () => {
+    expect(classifyReceipt(receipt())).toBe("FEE");
+    expect(classifyReceipt(receipt({ orderPurpose: null }))).toBe("FEE");
+    expect(classifyReceipt(receipt({ orderPurpose: "INSTALMENT" }))).toBe("FEE");
+    expect(classifyReceipt(receipt({ orderPurpose: "CUSTOM" }))).toBe("FEE");
+  });
+
+  it("keeps registration fees and pocket-money top-ups out, whatever else is recorded on them", () => {
+    expect(classifyReceipt(receipt({ orderPurpose: "REGISTRATION", allocations: [] }))).toBe("REGISTRATION");
+    expect(classifyReceipt(receipt({ orderPurpose: "IMPREST_TOPUP", allocations: [] }))).toBe(
+      "IMPREST_TOPUP",
+    );
+    expect(classifyReceipt(receipt({ orderPurpose: "IMPREST_TOPUP" }))).toBe("IMPREST_TOPUP");
+  });
+
+  it("keeps a payment with no allocation to any invoice out of the fees", () => {
+    expect(classifyReceipt(receipt({ allocations: [] }))).toBe("UNALLOCATED");
+    expect(classifyReceipt(receipt({ orderPurpose: null, allocations: [] }))).toBe("UNALLOCATED");
+  });
+
+  const may = { start: new Date("2026-04-30T18:30:00Z"), end: new Date("2026-05-31T18:30:00Z") };
+
+  it("adds wallet-credited overpayment to a fee payment and ties the parts to the total", () => {
+    const s = summariseReceipts(
+      [
+        receipt({
+          amountPaise: 120_000,
+          refundedPaise: 20_000,
+          allocations: [
+            { invoiceId: "inv1", amountPaise: 60_000 },
+            { invoiceId: "inv2", amountPaise: 40_000 },
+          ],
+        }),
+        receipt({ method: "CASH", allocations: [{ invoiceId: "inv1", amountPaise: 100_000 }] }),
+        receipt({ orderPurpose: "REGISTRATION", amountPaise: 30_000, allocations: [] }),
+        receipt({ orderPurpose: "IMPREST_TOPUP", amountPaise: 500_000, allocations: [] }),
+      ],
+      [may],
+    );
+    expect(s.fee).toEqual({ receipts: 2, gross: 220_000, refunded: 20_000 });
+    expect(s.walletCredit).toBe(20_000);
+    expect(s.allocatedByInvoice).toEqual(
+      new Map([
+        ["inv1", 160_000],
+        ["inv2", 40_000],
+      ]),
+    );
+    const allocated = [...s.allocatedByInvoice.values()].reduce((a, b) => a + b, 0);
+    expect(allocated + s.walletCredit).toBe(s.fee.gross);
+    expect(s.feeByMonth).toEqual([s.fee]);
+    expect([...s.feeByMethod.values()].reduce((n, t) => n + t.gross, 0)).toBe(s.fee.gross);
+    expect(s.other.REGISTRATION).toEqual({ receipts: 1, gross: 30_000, refunded: 0 });
+    expect(s.other.IMPREST_TOPUP).toEqual({ receipts: 1, gross: 500_000, refunded: 0 });
+    expect(s.other.UNALLOCATED).toEqual({ receipts: 0, gross: 0, refunded: 0 });
+  });
+
+  it("buckets fee receipts by the month window they fall in", () => {
+    const june = { start: may.end, end: new Date("2026-06-30T18:30:00Z") };
+    const s = summariseReceipts(
+      [
+        receipt({ receivedAt: new Date("2026-05-31T18:29:00Z") }),
+        receipt({ receivedAt: new Date("2026-05-31T18:30:00Z") }),
+      ],
+      [may, june],
+    );
+    expect(s.feeByMonth.map((m) => m.receipts)).toEqual([1, 1]);
   });
 });
 

@@ -1,13 +1,11 @@
 import Link from "next/link";
-import { requireStaff } from "@/lib/auth/session";
 import { can } from "@/lib/rbac";
-import { lenientFilter } from "@/lib/reports/filter";
 import { moneyBars, moneyColumns } from "@/lib/reports/chart-data";
-import { runReport } from "@/lib/services/reports";
 import { ColumnChart } from "@/components/charts/column-chart";
 import { BarList } from "@/components/charts/bar-list";
 import { ReportShell, relatedLink } from "../_components/report-shell";
 import { ReportChartCard, ReportTableCard } from "../_components/report-cards";
+import { loadReport, NoAcademicYear } from "../_components/report-access";
 import { tableOf } from "../_components/tables";
 
 export const metadata = { title: "Outstanding fees" };
@@ -18,8 +16,8 @@ export default async function OutstandingReport({
 }: {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
-  const user = await requireStaff("reports:read");
-  const result = await runReport(user, "outstanding", lenientFilter(await searchParams));
+  const { user, result } = await loadReport("outstanding", searchParams);
+  if (!result) return <NoAcademicYear user={user} slug="outstanding" />;
   const canExport = can(user.role, "reports:export");
   const ageing = tableOf(result, "ageing");
   const klass = tableOf(result, "by-class");

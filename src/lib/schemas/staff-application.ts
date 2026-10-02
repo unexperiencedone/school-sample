@@ -10,7 +10,8 @@ import { email, personName, phone } from "./common";
 const text = (max: number) => z.string().trim().max(max);
 const optional = (max: number) => text(max).optional().or(z.literal(""));
 /** yyyy-mm (month inputs) */
-const month = z.string().regex(/^\d{4}-(0[1-9]|1[0-2])$/, "Use month and year");
+const MONTH = /^\d{4}-(0[1-9]|1[0-2])$/;
+const month = z.string().regex(MONTH, "Use month and year");
 const isoDate = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Enter a date");
 
 export const STEPS = [
@@ -215,6 +216,33 @@ export function employmentGaps(jobs: { from: string; to: string }[], now: string
     coveredTo = Math.max(coveredTo, end);
   }
   return gaps;
+}
+
+const isMonth = (m: string | undefined): m is string => MONTH.test(m ?? "");
+
+/**
+ * The one job list behind every gap check, whether it is the applicant's live form, the HR view or the PDF.
+ * Malformed rows (half typed, or ending before they start) and rows that start after `now` are ignored. The current
+ * post runs to `now`. An applicant who is not employed and has history is out of work since their last job, which is
+ * a job that starts and ends at `now`.
+ */
+export function jobsForGaps(
+  data: Pick<StaffApplicationData, "history" | "current">,
+  now: string,
+): { from: string; to: string }[] {
+  const jobs = (data.history?.items ?? [])
+    .filter((j) => isMonth(j.from) && isMonth(j.to) && j.to >= j.from && j.from <= now)
+    .map((j) => ({ from: j.from, to: j.to }));
+  const cur = data.current;
+  if (cur?.employed) {
+    if (isMonth(cur.since) && cur.since <= now) jobs.push({ from: cur.since, to: now });
+  } else if (jobs.length > 0) jobs.push({ from: now, to: now });
+  return jobs;
+}
+
+/** Gaps of three months or more in an application, as the applicant sees them and as HR sees them. */
+export function gapsFor(data: Pick<StaffApplicationData, "history" | "current">, now: string): Gap[] {
+  return employmentGaps(jobsForGaps(data, now), now);
 }
 
 /** Display name for a stored application (the draft may not have a name yet). */

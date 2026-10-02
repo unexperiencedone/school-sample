@@ -2,6 +2,8 @@ import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import { requireStaff } from "@/lib/auth/session";
 import { PageHeader } from "@/components/crm/page-header";
+import { EmptyState } from "@/components/ui/states";
+import { NoAcademicYear } from "./_components/report-access";
 import { reportHub } from "@/lib/services/reports";
 
 export const metadata = { title: "Reports" };
@@ -10,6 +12,16 @@ export const dynamic = "force-dynamic";
 export default async function ReportsHub() {
   const user = await requireStaff("reports:read");
   const hub = await reportHub(user);
+  if (hub.status === "no-year") return <NoAcademicYear user={user} />;
+  if (hub.status === "none-allowed")
+    return (
+      <>
+        <PageHeader title="Reports" />
+        <EmptyState title="No reports are open to your role">
+          Each report needs access to the data it shows. Ask an administrator if you need one.
+        </EmptyState>
+      </>
+    );
   return (
     <>
       <PageHeader

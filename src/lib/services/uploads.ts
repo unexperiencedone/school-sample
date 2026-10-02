@@ -2,6 +2,7 @@ import "server-only";
 import { randomBytes } from "node:crypto";
 import { db } from "@/lib/db";
 import { ApiError } from "@/lib/api";
+import { signToken } from "@/lib/tokens";
 import {
   getStorage,
   isAllowedMime,
@@ -51,31 +52,52 @@ export async function createUpload(input: {
       status: "PENDING",
     },
   });
-  const target = await getStorage().createUploadUrl({
+  const storage = getStorage();
+  const target = await storage.createUploadUrl({
     key,
     mime: input.mime,
     maxBytes: Math.min(input.size, UPLOAD_POLICY.maxBytes),
   });
+  // A direct-to-store upload never passes through this server, so the client reports back and we validate it then
+  if (storage.mode === "LIVE")
+    target.completeUrl = `/api/uploads/complete?token=${encodeURIComponent(signToken("upload-complete", { key }, 900))}`;
   return target;
 }
 
-/** Validates the stored bytes and attaches the file to its owner record. */
-export async function completeUpload(key: string, data: Buffer) {
+/** Local adapter: the server received the bytes, so validate them and store them. */
+export function completeUpload(key: string, data: Buffer) {
+  return finalizeUpload(key, data, false);
+}
+
+/** Direct-to-store adapters (S3): the file is already in the bucket; fetch it back and validate it. */
+export async function completeStoredUpload(key: string) {
+  const data = await getStorage()
+    .get(key)
+    .catch(() => null);
+  if (!data) throw new ApiError(404, "NOT_UPLOADED", "The file hasn't arrived yet. Try the upload again.");
+  return finalizeUpload(key, data, true);
+}
+
+/** Validates the bytes and attaches the file to its owner record; a rejected file is also removed from the store. */
+async function finalizeUpload(key: string, data: Buffer, alreadyStored: boolean) {
   const upload = await db.upload.findUnique({ where: { key } });
   if (!upload || upload.status !== "PENDING")
     throw new ApiError(404, "UNKNOWN_UPLOAD", "Upload not found or already completed");
+  const reject = async (status: number, code: string, message: string): Promise<never> => {
+    await db.upload.update({ where: { key }, data: { status: "REJECTED" } });
+    if (alreadyStored)
+      await getStorage()
+        .delete(key)
+        .catch(() => undefined);
+    throw new ApiError(status, code, message);
+  };
   if (data.length === 0 || data.length > UPLOAD_POLICY.maxBytes)
-    throw new ApiError(422, "BAD_SIZE", "Empty or oversized file");
-  if (!sniffMatches(data, upload.mime)) {
-    await db.upload.update({ where: { key }, data: { status: "REJECTED" } });
-    throw new ApiError(422, "TYPE_MISMATCH", "The file contents don't match its type.");
-  }
+    return reject(422, "BAD_SIZE", "Empty or oversized file");
+  if (!sniffMatches(data, upload.mime))
+    return reject(422, "TYPE_MISMATCH", "The file contents don't match its type.");
   const scan = await scanForMalware(data);
-  if (!scan.clean) {
-    await db.upload.update({ where: { key }, data: { status: "REJECTED" } });
-    throw new ApiError(422, "INFECTED", "The file failed a security scan.");
-  }
-  await getStorage().put(key, data, upload.mime);
+  if (!scan.clean) return reject(422, "INFECTED", "The file failed a security scan.");
+  if (!alreadyStored) await getStorage().put(key, data, upload.mime);
   await db.upload.update({ where: { key }, data: { status: "STORED", size: data.length } });
 
   const [ownerId, slot] = upload.ownerId.split(":");

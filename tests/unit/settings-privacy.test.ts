@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   DELETION_POLICY,
   RETENTION_YEARS,
+  STAFF_APPLICATION_RETENTION_MONTHS,
   appendHandlerNote,
   phoneKeys,
   resolveRequestSchema,
@@ -75,5 +76,13 @@ describe("deletion policy", () => {
   it("never offers to erase money records or the audit trail", () => {
     const erased = DELETION_POLICY.erase.map((i) => i.key);
     for (const key of ["invoices", "payments", "auditLog", "pupilRecord"]) expect(erased).not.toContain(key);
+  });
+
+  it("erases staff application drafts but retains submitted ones for a stated period", () => {
+    expect(DELETION_POLICY.erase.map((i) => i.key)).toContain("staffDrafts");
+    const kept = DELETION_POLICY.retain.find((i) => i.key === "staffApplications");
+    expect(STAFF_APPLICATION_RETENTION_MONTHS).toBe(12);
+    expect(kept?.detail).toContain("12 months after the vacancy closes");
+    expect(DELETION_POLICY.erase.map((i) => i.key)).not.toContain("staffApplications");
   });
 });

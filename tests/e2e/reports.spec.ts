@@ -15,6 +15,9 @@ const REPORTS = [
   { slug: "seats", title: "Seat utilisation" },
 ] as const;
 
+/** Accounts holds payments:read, fees:read, applications:read and academics:read, but not leads:read. */
+const ACCOUNTS_REPORTS = REPORTS.filter((r) => r.slug !== "sources");
+
 const currentYear = () => testDb.academicYear.findFirstOrThrow({ where: { isCurrent: true } });
 
 /** Collects console errors and uncaught page errors from now on. */
@@ -46,7 +49,7 @@ async function axe(page: Page, label: string) {
   }
 }
 
-test("accounts opens the hub and every report with no console errors, and every card toggles to its table", async ({
+test("accounts opens the hub and every report its permissions allow with no console errors, and every card toggles to its table", async ({
   page,
 }) => {
   test.setTimeout(180_000);
@@ -57,13 +60,14 @@ test("accounts opens the hub and every report with no console errors, and every 
   const hub = await page.goto("/admin/reports");
   expect(hub?.status()).toBe(200);
   await expect(page.getByRole("heading", { level: 1, name: "Reports" })).toBeVisible();
-  for (const r of REPORTS) {
+  for (const r of ACCOUNTS_REPORTS) {
     const card = page.getByRole("link", { name: new RegExp(r.title) });
     await expect(card).toBeVisible();
     await expect(card).toContainText(/\d/); // a headline number
   }
+  await expect(page.getByRole("link", { name: /Lead sources/ })).toHaveCount(0);
 
-  for (const r of REPORTS) {
+  for (const r of ACCOUNTS_REPORTS) {
     const res = await page.goto(`/admin/reports/${r.slug}`);
     expect(res?.status(), r.slug).toBe(200);
     await expect(page.getByRole("heading", { level: 1, name: r.title })).toBeVisible();
@@ -191,6 +195,7 @@ test("accounts downloads CSV and XLSX, and every download is audited with its fi
     "Billed and collected by class",
     "Collected by fee head",
     "Collected by payment method",
+    "Other receipts (not fees)",
   ]);
   const sheet = wb.getWorksheet("Collected by month")!;
   expect(String(sheet.getCell("A1").value)).toBe("Fee collections: Collected by month");
@@ -253,14 +258,49 @@ test("a teacher is denied the reports and their downloads", async ({ page, reque
   expect(anon.status()).toBe(401);
 });
 
-test("admissions may read reports but has no export buttons and cannot download", async ({ page }) => {
+test("admissions sees the reports its permissions allow, has no export buttons and cannot download", async ({
+  page,
+}) => {
   await loginAs(page, "admissions");
+  await page.goto("/admin/reports");
+  for (const title of ["Outstanding fees", "Admissions funnel", "Lead sources", "Seat utilisation"])
+    await expect(page.getByRole("link", { name: new RegExp(title) })).toBeVisible();
+  await expect(page.getByRole("link", { name: /Fee collections/ })).toHaveCount(0);
+
+  // fee collections need payments:read, which admissions does not hold
+  await page.goto("/admin/reports/collections");
+  await expect(page).toHaveURL(/\/admin\?denied=payments%3Aread/);
+  expect((await page.request.get("/api/admin/reports/collections?format=csv")).status()).toBe(403);
+
   await page.goto("/admin/reports/funnel");
   await expect(page.getByRole("heading", { level: 1, name: "Admissions funnel" })).toBeVisible();
   await expect(page.getByRole("link", { name: /^Export/ })).toHaveCount(0);
   await expect(page.getByRole("link", { name: /as CSV$/ })).toHaveCount(0);
   const res = await page.request.get("/api/admin/reports/funnel?format=xlsx");
   expect(res.status()).toBe(403);
+});
+
+test("hr may open reports but none of their data, so the hub says so and every report is refused", async ({
+  page,
+}) => {
+  await loginAs(page, "hr");
+  await page.goto("/admin/reports");
+  await expect(page.getByRole("heading", { level: 1, name: "Reports" })).toBeVisible();
+  await expect(page.getByText("No reports are open to your role")).toBeVisible();
+  await expect(page.getByRole("link", { name: /Open report/ })).toHaveCount(0);
+  await page.goto("/admin/reports/outstanding");
+  await expect(page).toHaveURL(/\/admin\?denied=fees%3Aread/);
+  await page.goto("/admin/reports/seats");
+  await expect(page).toHaveURL(/\/admin\?denied=academics%3Aread/);
+});
+
+test("a report's download needs its data's permission as well as reports:export", async ({ page }) => {
+  await loginAs(page, "accounts");
+  const res = await page.request.get("/api/admin/reports/sources?format=csv");
+  expect(res.status()).toBe(403);
+  expect((await res.json()).error.code).toBe("FORBIDDEN");
+  await page.goto("/admin/reports/sources");
+  await expect(page).toHaveURL(/\/admin\?denied=leads%3Aread/);
 });
 
 test("the API validates what it is asked for", async ({ page }) => {
@@ -280,8 +320,6 @@ test("related screens are linked only to those who may open them", async ({ page
     "href",
     "/admin/fees/dues",
   );
-  await page.goto("/admin/reports/sources");
-  await expect(page.getByRole("link", { name: "Simple view on Leads" })).toHaveCount(0);
 
   await loginAs(page, "admissions");
   await page.goto("/admin/reports/sources");
@@ -294,7 +332,7 @@ test("related screens are linked only to those who may open them", async ({ page
 test("phones get no sideways page scroll on any report", async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await loginAs(page, "accounts");
-  for (const path of ["/admin/reports", ...REPORTS.map((r) => `/admin/reports/${r.slug}`)]) {
+  for (const path of ["/admin/reports", ...ACCOUNTS_REPORTS.map((r) => `/admin/reports/${r.slug}`)]) {
     await page.goto(path);
     await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
     const overflow = await page.evaluate(

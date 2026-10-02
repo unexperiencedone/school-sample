@@ -10,6 +10,9 @@ import { DEMO_USERS } from "./demo-users";
 import { isDemoMode } from "@/config/school";
 import { sendTemplate } from "@/lib/notify";
 
+/** The seeded demo accounts (known password, public email addresses) only exist to be used while demo mode is on. */
+const isDemoEmail = (email: string) => DEMO_USERS.some((d) => d.email === email.toLowerCase());
+
 const credentialsSchema = z.object({ email: z.string().email(), password: z.string().min(1).max(200) });
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
@@ -23,6 +26,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       async authorize(raw) {
         const parsed = credentialsSchema.safeParse(raw);
         if (!parsed.success) return null;
+        if (!isDemoMode() && isDemoEmail(parsed.data.email)) return null;
         const user = await db.user.findUnique({ where: { email: parsed.data.email.toLowerCase() } });
         if (!user?.passwordHash || !user.active) return null;
         if (!(await verifyPassword(user.passwordHash, parsed.data.password))) return null;
@@ -62,6 +66,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       // Magic links only for accounts that already exist (parents, applicants, staff). No self sign-up.
       if (account?.provider === "magic-link") {
         const email = (user.email ?? "").toLowerCase();
+        if (!isDemoMode() && isDemoEmail(email)) return false;
         const existing = await db.user.findUnique({ where: { email } });
         return !!existing?.active;
       }

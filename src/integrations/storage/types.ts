@@ -4,6 +4,8 @@ export type UploadTarget = {
   headers: Record<string, string>;
   key: string;
   expiresAt: string;
+  /** Set when the browser uploads straight to the store: POST here afterwards so the server validates the file. */
+  completeUrl?: string;
 };
 
 export interface StorageAdapter {

@@ -12,13 +12,26 @@ const analyticsHosts = [
   "https://www.clarity.ms",
 ].join(" ");
 
+/** Browsers upload straight to the object store (S3) with a presigned URL, so its origin must be allowed in connect-src. */
+function storageOrigin(): string {
+  if (process.env.STORAGE_PROVIDER !== "s3") return "";
+  try {
+    const custom = process.env.S3_ENDPOINT || process.env.AWS_ENDPOINT_URL_S3;
+    if (custom) return new URL(custom).origin;
+    const { S3_BUCKET: bucket, S3_REGION, AWS_REGION } = process.env;
+    return bucket ? `https://${bucket}.s3.${S3_REGION || AWS_REGION}.amazonaws.com` : "";
+  } catch {
+    return "";
+  }
+}
+
 const csp = [
   "default-src 'self'",
   `script-src 'self' 'unsafe-inline' ${isDev ? "'unsafe-eval'" : ""} ${analyticsHosts} https://challenges.cloudflare.com https://www.google.com https://www.gstatic.com`,
   "style-src 'self' 'unsafe-inline'",
   "img-src 'self' data: blob: https:",
   "font-src 'self' data:",
-  `connect-src 'self' ${analyticsHosts}`,
+  `connect-src 'self' ${analyticsHosts} ${storageOrigin()}`,
   "frame-src 'self' https://www.google.com https://challenges.cloudflare.com",
   "media-src 'self' blob:",
   "worker-src 'self' blob:",

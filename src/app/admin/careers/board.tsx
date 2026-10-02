@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useOptimistic, useState, useTransition } from "react";
+import { useEffect, useOptimistic, useRef, useState, useTransition } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogClose, DialogContent } from "@/components/ui/dialog";
@@ -25,9 +25,15 @@ export type BoardCard = {
 
 export type BoardColumn = { stage: BoardStage; count: number; shown: number };
 
+const moveSelectId = (id: string) => `move-${id}`;
+
 /**
  * Kanban of submitted applications by stage. Drag a card to another stage, or use the card's "Move to" menu (the
  * keyboard and screen-reader path). Rejecting asks for a reason. The server decides what is allowed.
+ *
+ * Moving a card re-parents its `<li>` into another column, which unmounts the focused select. So the card being moved
+ * by keyboard is remembered, and focus goes back to its select once it has re-rendered (and when the reject dialog
+ * closes). Each move is also announced in a polite live region.
  */
 export function ApplicationBoard({
   columns,
@@ -41,19 +47,35 @@ export function ApplicationBoard({
   const [pending, start] = useTransition();
   const [rejecting, setRejecting] = useState<BoardCard | null>(null);
   const [reason, setReason] = useState("");
+  const [announcement, setAnnouncement] = useState("");
+  /** The card whose select had focus when it was moved by keyboard; null after a drag. */
+  const keyboardMoved = useRef<string | null>(null);
+  /** The card being rejected, so closing the dialog can return to its select however the dialog was opened. */
+  const rejectTarget = useRef<string | null>(null);
   const [optimistic, move] = useOptimistic(
     cards,
     (state, { id, status }: { id: string; status: BoardStage }) =>
       state.map((c) => (c.id === id ? { ...c, status } : c)),
   );
 
+  /** The card's select was unmounted by the move, so focus has fallen to the page; give it back. */
+  useEffect(() => {
+    const id = keyboardMoved.current;
+    if (!id || (document.activeElement && document.activeElement !== document.body)) return;
+    document.getElementById(moveSelectId(id))?.focus();
+  }, [optimistic]);
+
   const send = (card: BoardCard, status: BoardStage, why?: string) =>
     start(async () => {
       move({ id: card.id, status });
       const r = await moveStageAction(card.id, status, why);
-      if (!r.ok) toast.error(r.error);
-      else {
-        toast.success(`${card.name} moved to ${STAGE_LABEL[status]}`);
+      if (!r.ok) {
+        toast.error(r.error);
+        setAnnouncement(`${card.name} was not moved. ${r.error}`);
+      } else {
+        const done = `${card.name} moved to ${STAGE_LABEL[status]}`;
+        toast.success(done);
+        setAnnouncement(done);
         setRejecting(null);
         setReason("");
       }
@@ -64,7 +86,10 @@ export function ApplicationBoard({
     if (!card || card.status === status) return;
     const check = canMoveStage(card.status, status);
     if (!check.ok) return void toast.error(check.reason);
-    if (status === "REJECTED") return setRejecting(card);
+    if (status === "REJECTED") {
+      rejectTarget.current = card.id;
+      return setRejecting(card);
+    }
     send(card, status);
   };
 
@@ -81,6 +106,9 @@ export function ApplicationBoard({
 
   return (
     <>
+      <p role="status" aria-live="polite" className="sr-only" data-testid="board-announcement">
+        {announcement}
+      </p>
       <div className={cn("flex gap-3 overflow-x-auto pb-4", pending && "cursor-progress")}>
         {columns.map((col) => {
           const list = optimistic.filter((c) => c.status === col.stage);
@@ -94,6 +122,7 @@ export function ApplicationBoard({
               onDragOver={(e) => canWrite && e.preventDefault()}
               onDrop={(e) => {
                 const id = e.dataTransfer.getData("text/staff-application");
+                keyboardMoved.current = null;
                 if (id && canWrite) request(id, col.stage);
               }}
               className="flex w-64 shrink-0 flex-col rounded-lg bg-sunken p-2"
@@ -137,8 +166,12 @@ export function ApplicationBoard({
                       <label className="mt-2 block">
                         <span className="sr-only">Move {c.name} to</span>
                         <select
+                          id={moveSelectId(c.id)}
                           value={c.status}
-                          onChange={(e) => request(c.id, e.target.value as BoardStage)}
+                          onChange={(e) => {
+                            keyboardMoved.current = c.id;
+                            request(c.id, e.target.value as BoardStage);
+                          }}
                           className="h-9 w-full rounded border border-line bg-bg px-1 text-xs"
                         >
                           {columns.map((o) => (
@@ -181,6 +214,13 @@ export function ApplicationBoard({
         <DialogContent
           title={`Reject ${rejecting?.name ?? "application"}`}
           description="The reason is kept in the application's notes and the audit log."
+          onCloseAutoFocus={(e) => {
+            // There is no trigger button to return to; the card's own select is the place to carry on from.
+            const id = rejectTarget.current;
+            if (!id) return;
+            e.preventDefault();
+            document.getElementById(moveSelectId(id))?.focus();
+          }}
         >
           <form
             onSubmit={(e) => {
