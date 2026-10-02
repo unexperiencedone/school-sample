@@ -1,5 +1,5 @@
 import "server-only";
-import type { BoardingType, Prisma, Role } from "@prisma/client";
+import type { BoardingType, PortalRequestKind, Prisma, Role } from "@prisma/client";
 import { db } from "@/lib/db";
 import { ApiError } from "@/lib/api";
 import { assertCan, can } from "@/lib/rbac";
@@ -22,12 +22,12 @@ export type DirectoryFilters = {
   status?: string;
 };
 
-export function directoryWhere(f: DirectoryFilters, currentYearId: string): Prisma.StudentWhereInput {
+export function directoryWhere(f: DirectoryFilters): Prisma.StudentWhereInput {
   const statuses = ["ACTIVE", "PROSPECTIVE", "WITHDRAWN", "TRANSFERRED", "ALUMNA"];
   return {
     ...(f.status && statuses.includes(f.status)
       ? { status: f.status as Prisma.StudentWhereInput["status"] }
-      : { status: "ACTIVE", section: { yearId: currentYearId } }),
+      : { status: "ACTIVE" }), // the roll: right after promotion, pupils sit in next year's sections
     ...(f.classId ? { classId: f.classId } : {}),
     ...(f.sectionId ? { sectionId: f.sectionId } : {}),
     ...(f.houseId ? { houseId: f.houseId } : {}),
@@ -323,11 +323,17 @@ export async function planPromotion() {
   return { current, next, rows, skipped };
 }
 
-/** Executes the plan in one transaction (a person confirms the preview first). */
+/**
+ * Executes the plan in one transaction (a person confirms the preview first). Pupils the registrar excluded are
+ * *retained*: they repeat their class next year, in a section of the same class, so nobody is left on a roll that
+ * no longer exists.
+ */
 export async function runPromotion(actor: Actor, excluded: string[], reason: string) {
   assertCan(actor.role, "students:promote");
   const plan = await planPromotion();
   const rows = plan.rows.filter((r) => !excluded.includes(r.studentId) && (r.toSectionId || !r.toClass));
+  const retained = plan.rows.filter((r) => excluded.includes(r.studentId));
+  let retainedPlaced = 0;
   await db.$transaction(
     async (tx) => {
       for (const r of rows) {
@@ -356,6 +362,37 @@ export async function runPromotion(actor: Actor, excluded: string[], reason: str
           },
         });
       }
+      for (const r of retained) {
+        const student = await tx.student.findUniqueOrThrow({
+          where: { id: r.studentId },
+          include: { section: true },
+        });
+        const options = await tx.section.findMany({
+          where: { yearId: plan.next.id, classId: student.classId },
+          include: { _count: { select: { students: true } } },
+          orderBy: { name: "asc" },
+        });
+        const same = options.find((o) => o.name === student.section?.name);
+        const target =
+          same && same._count.students < same.capacity
+            ? same
+            : [...options].sort((a, b) => a._count.students / a.capacity - b._count.students / b.capacity)[0];
+        if (!target) continue; // no section for her class next year: stays on the current roll for the registrar to place
+        await tx.studentClassHistory.updateMany({
+          where: { studentId: r.studentId, yearId: plan.current.id },
+          data: { outcome: "RETAINED" },
+        });
+        await tx.student.update({ where: { id: r.studentId }, data: { sectionId: target.id } });
+        await tx.studentClassHistory.create({
+          data: {
+            studentId: r.studentId,
+            yearId: plan.next.id,
+            classId: student.classId,
+            sectionId: target.id,
+          },
+        });
+        retainedPlaced++;
+      }
       await audit(
         {
           actor,
@@ -365,7 +402,7 @@ export async function runPromotion(actor: Actor, excluded: string[], reason: str
           after: {
             promoted: rows.filter((r) => r.toClass).length,
             leavers: rows.filter((r) => !r.toClass).length,
-            excluded: excluded.length,
+            retained: retainedPlaced,
           },
           reason,
         },
@@ -374,23 +411,36 @@ export async function runPromotion(actor: Actor, excluded: string[], reason: str
     },
     { timeout: 120_000 },
   );
-  return { moved: rows.length };
+  return { moved: rows.length, retained: retainedPlaced };
 }
 
 /* ───────────────────────────── Portal requests ───────────────────────────── */
+
+/** Which kinds of family request a role may see and answer — a hardship concession isn't a teacher's business. */
+export function requestKindsFor(role: Role): PortalRequestKind[] {
+  const kinds: PortalRequestKind[] = [];
+  if (can(role, "students:write")) kinds.push("WITHDRAWAL", "PROFILE_UPDATE");
+  if (can(role, "concessions:request") || can(role, "concessions:approve")) kinds.push("CONCESSION");
+  if (can(role, "imprest:write") || can(role, "students:write")) kinds.push("IMPREST_TOPUP");
+  return [...new Set(kinds)];
+}
 
 export async function respondToRequest(
   actor: Actor,
   id: string,
   input: { status: "IN_REVIEW" | "APPROVED" | "REJECTED" | "CLOSED"; response: string },
 ) {
-  if (!can(actor.role, "students:write") && !can(actor.role, "fees:read"))
-    assertCan(actor.role, "students:write");
   const before = await db.portalRequest.findUniqueOrThrow({ where: { id } });
-  const after = await db.portalRequest.update({
-    where: { id },
+  if (!requestKindsFor(actor.role).includes(before.kind))
+    throw new ApiError(403, "FORBIDDEN", "You can't handle this kind of request.");
+  if (["APPROVED", "REJECTED", "CLOSED"].includes(before.status))
+    throw new ApiError(409, "ALREADY_CLOSED", "This request has already been answered.");
+  const { count } = await db.portalRequest.updateMany({
+    where: { id, status: { in: ["OPEN", "IN_REVIEW"] } },
     data: { status: input.status, response: input.response.trim() || null, handledById: actor.id },
   });
+  if (!count) throw new ApiError(409, "ALREADY_CLOSED", "This request has already been answered.");
+  const after = await db.portalRequest.findUniqueOrThrow({ where: { id } });
   await audit({
     actor,
     action: "portal_request.respond",

@@ -1233,6 +1233,7 @@ model Announcement {
   expiresAt   DateTime?
   active      Boolean          @default(true)
   order       Int              @default(0)
+  audience    String           @default("ALL") // circulars: ALL | BOARDERS | CLASS:<classId>
   createdById String?
 }
 

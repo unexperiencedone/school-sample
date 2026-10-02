@@ -21,6 +21,7 @@ export const POST = route(
     const { guardian, children } = await portalContext(user!);
     const child = children.find((c) => c.id === body.studentId);
     if (!guardian || !child) throw new ApiError(404, "NOT_FOUND", "Pupil not found");
+    if (!child.onRoll) throw new ApiError(409, "LEFT_SCHOOL", "She has left the school.");
     if (child.boardingType === "DAY")
       throw new ApiError(409, "DAY_PUPIL", "Pocket money is for boarders only.");
     const { order, checkout } = await createPaymentOrder({
@@ -28,7 +29,7 @@ export const POST = route(
       amountPaise: body.amountPaise,
       customer: { name: guardian.name, email: user!.email, phone: guardian.phone, id: user!.id },
       description: `Pocket money top-up — ${child.firstName} ${child.lastName}`,
-      idempotencyKey: `topup:${user!.id}:${body.idempotencyKey}`,
+      idempotencyKey: `topup:${user!.id}:${child.id}:${body.idempotencyKey}`,
       returnPath: `/portal/pocket-money?child=${child.id}`,
       studentId: child.id,
     });

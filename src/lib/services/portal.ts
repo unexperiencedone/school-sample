@@ -16,7 +16,6 @@ export async function portalContext(user: CurrentUser) {
     where: { userId: user.id },
     include: {
       students: {
-        where: { student: { status: { in: ["ACTIVE", "PROSPECTIVE"] } } },
         include: {
           student: {
             select: {
@@ -26,6 +25,7 @@ export async function portalContext(user: CurrentUser) {
               admissionNo: true,
               boardingType: true,
               status: true,
+              leftOn: true,
               class: { select: { name: true, order: true } },
               section: { select: { name: true } },
               house: { select: { name: true, colour: true } },
@@ -36,10 +36,39 @@ export async function portalContext(user: CurrentUser) {
       },
     },
   });
-  return {
-    guardian,
-    children: guardian?.students.map((s) => ({ ...s.student, relation: s.relation })) ?? [],
-  };
+  // Children who have left stay visible (fees, receipts and documents outlive enrolment) but are read-only.
+  const children =
+    guardian?.students.map((s) => ({
+      ...s.student,
+      relation: s.relation,
+      onRoll: s.student.status === "ACTIVE" || s.student.status === "PROSPECTIVE",
+    })) ?? [];
+  children.sort((a, b) => Number(b.onRoll) - Number(a.onRoll));
+  return { guardian, children };
+}
+
+/** Circulars this family may read: those for everyone, for boarders (if any child boards) or for a child's class. */
+export async function circularsFor(user: CurrentUser, take: number) {
+  const { children } = await portalContext(user);
+  const classIds = await db.student.findMany({
+    where: { id: { in: children.map((c) => c.id) } },
+    select: { classId: true },
+  });
+  const audiences = [
+    "ALL",
+    ...(children.some((c) => c.boardingType !== "DAY") ? ["BOARDERS"] : []),
+    ...classIds.map((c) => `CLASS:${c.classId}`),
+  ];
+  return db.announcement.findMany({
+    where: {
+      kind: "CIRCULAR",
+      active: true,
+      audience: { in: audiences },
+      OR: [{ expiresAt: null }, { expiresAt: { gt: new Date() } }],
+    },
+    orderBy: { publishedAt: "desc" },
+    take,
+  });
 }
 
 export type PortalChild = Awaited<ReturnType<typeof portalContext>>["children"][number];
@@ -48,7 +77,7 @@ export type PortalChild = Awaited<ReturnType<typeof portalContext>>["children"][
 export async function selectChild(user: CurrentUser, childParam?: string) {
   const ctx = await portalContext(user);
   if (!ctx.guardian || ctx.children.length === 0) return { ...ctx, child: null };
-  const child = childParam ? ctx.children.find((c) => c.id === childParam) : ctx.children[0];
+  const child = childParam ? ctx.children.find((c) => c.id === childParam) : ctx.children[0]; // on-roll first
   if (!child) notFound();
   return { ...ctx, child };
 }
@@ -58,8 +87,11 @@ export async function createPortalRequest(
   input: { studentId: string; kind: PortalRequestKind; payload: Record<string, unknown> },
 ) {
   const ctx = await portalContext(user);
-  if (!ctx.guardian || !ctx.children.some((c) => c.id === input.studentId))
+  const child = ctx.children.find((c) => c.id === input.studentId);
+  if (!ctx.guardian || !child)
     throw new ApiError(403, "FORBIDDEN", "You can only send requests about your own children.");
+  if (!child.onRoll)
+    throw new ApiError(409, "LEFT_SCHOOL", "She has left the school — please contact the office directly.");
   const open = await db.portalRequest.count({
     where: { studentId: input.studentId, kind: input.kind, status: { in: ["OPEN", "IN_REVIEW"] } },
   });

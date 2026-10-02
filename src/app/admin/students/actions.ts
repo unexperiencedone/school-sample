@@ -88,7 +88,9 @@ export async function promoteAction(form: FormData): Promise<ActionResult> {
   return run(async () => {
     const excluded = form.getAll("exclude").map(String);
     const r = await runPromotion(user, excluded, reason.parse(form.get("reason")));
-    return { message: `${r.moved} pupils moved into next year` };
+    return {
+      message: `${r.moved} pupils moved into next year${r.retained ? `, ${r.retained} repeating` : ""}`,
+    };
   }, ["/admin/students", "/admin/students/promotion", "/admin/academics"]);
 }
 

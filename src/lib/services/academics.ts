@@ -42,6 +42,19 @@ export async function updateTerm(
 export async function setCurrentYear(actor: Actor, yearId: string, reason: string) {
   assertCan(actor.role, "settings:write");
   const before = await db.academicYear.findFirst({ where: { isCurrent: true } });
+  const target = await db.academicYear.findUniqueOrThrow({ where: { id: yearId } });
+  if (before && target.startDate > before.startDate) {
+    // Promotion plans from the *current* year, so it has to run first; otherwise the roll would look empty.
+    const unplaced = await db.student.count({
+      where: { status: "ACTIVE", section: { yearId: before.id } },
+    });
+    if (unplaced > 0)
+      throw new ApiError(
+        409,
+        "PROMOTE_FIRST",
+        `${unplaced} pupils are still placed in ${before.name}. Run the year-end promotion first (Students → Promotion), then switch the year.`,
+      );
+  }
   await db.$transaction([
     db.academicYear.updateMany({ data: { isCurrent: false } }),
     db.academicYear.update({ where: { id: yearId }, data: { isCurrent: true } }),

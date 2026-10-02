@@ -4,7 +4,7 @@ import { requireRole } from "@/lib/auth/session";
 import { db } from "@/lib/db";
 import { formatINR } from "@/lib/money";
 import { formatDate, istDateOnly } from "@/lib/dates";
-import { selectChild } from "@/lib/services/portal";
+import { circularsFor, selectChild } from "@/lib/services/portal";
 import { balances } from "@/lib/services/imprest";
 import { PayButton } from "@/components/forms/pay-button";
 import { ChildHeader, NoChildren } from "@/components/portal/child-card";
@@ -26,11 +26,7 @@ export default async function PortalHome({ searchParams }: { searchParams: Promi
       include: { invoice: { select: { number: true } } },
       orderBy: { dueDate: "asc" },
     }),
-    db.announcement.findMany({
-      where: { kind: "CIRCULAR", active: true },
-      orderBy: { publishedAt: "desc" },
-      take: 3,
-    }),
+    circularsFor(user, 3),
     db.event.findMany({
       where: { published: true, startsAt: { gte: new Date() } },
       orderBy: { startsAt: "asc" },

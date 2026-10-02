@@ -17,7 +17,11 @@ import { sendTourReminders } from "./tours";
 
 const UNPAID: Prisma.InstalmentWhereInput = {
   status: { notIn: ["PAID", "WAIVED"] },
-  invoice: { status: { notIn: ["VOID", "WAIVED", "DRAFT"] } },
+  invoice: {
+    status: { notIn: ["VOID", "WAIVED", "DRAFT"] },
+    // Pupils who have left don't accrue late fees or get reminders — settlement is a person's decision
+    student: { status: { in: ["ACTIVE", "PROSPECTIVE"] } },
+  },
 };
 
 /**

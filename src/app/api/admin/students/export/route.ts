@@ -13,12 +13,14 @@ export const GET = route(
   async (req, { user }) => {
     const url = new URL(req.url);
     const f = Object.fromEntries(url.searchParams);
-    const year = await db.academicYear.findFirstOrThrow({ where: { isCurrent: true } });
     const rows = await db.student.findMany({
-      where: directoryWhere(
-        { q: f.q, classId: f.class, houseId: f.house, boarding: f.boarding, status: f.status },
-        year.id,
-      ),
+      where: directoryWhere({
+        q: f.q,
+        classId: f.class,
+        houseId: f.house,
+        boarding: f.boarding,
+        status: f.status,
+      }),
       include: {
         class: true,
         section: true,

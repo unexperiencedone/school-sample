@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { notFound } from "next/navigation";
 import type { PortalRequestStatus } from "@prisma/client";
 import { requireStaff } from "@/lib/auth/session";
 import { db } from "@/lib/db";
@@ -12,6 +13,7 @@ import { Card } from "@/components/ui/card";
 import { Select, Textarea } from "@/components/ui/input";
 import { EmptyState } from "@/components/ui/states";
 import { cn } from "@/lib/utils";
+import { requestKindsFor } from "@/lib/services/students";
 import { respondRequestAction } from "../actions";
 
 export const metadata = { title: "Family requests" };
@@ -59,11 +61,13 @@ function Payload({ kind, payload }: { kind: string; payload: Record<string, unkn
 
 /** Withdrawal notices, concession requests and profile changes sent by parents from the portal. */
 export default async function RequestsPage({ searchParams }: { searchParams: Promise<{ tab?: string }> }) {
-  await requireStaff("students:read");
+  const user = await requireStaff("students:read");
+  const kinds = requestKindsFor(user.role);
+  if (kinds.length === 0) notFound();
   const sp = await searchParams;
   const tab = TABS.find((t) => t.key === sp.tab) ?? TABS[0]!;
   const requests = await db.portalRequest.findMany({
-    where: { status: { in: tab.statuses } },
+    where: { status: { in: tab.statuses }, kind: { in: kinds } },
     include: { student: { include: { class: true } }, guardian: true },
     orderBy: { createdAt: tab.key === "open" ? "asc" : "desc" },
     take: 100,

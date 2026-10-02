@@ -5,6 +5,7 @@ import { ApiError } from "@/lib/api";
 import { assertCan } from "@/lib/rbac";
 import { audit } from "@/lib/audit";
 import { formatINR } from "@/lib/money";
+import { istDateOnly } from "@/lib/dates";
 
 /**
  * Pocket money (imprest) for boarders: a simple ledger of credits (term allowance, top-ups) and expenses (tuck
@@ -73,25 +74,37 @@ export async function addEntry(
   const student = await db.student.findUniqueOrThrow({ where: { id: input.studentId } });
   if (student.boardingType === "DAY")
     throw new ApiError(409, "DAY_PUPIL", "Pocket money is kept for boarders only.");
-  if (input.kind === "EXPENSE") {
-    const balance = (await balances([input.studentId])).get(input.studentId)?.balance ?? 0;
-    if (input.amountPaise > balance)
-      throw new ApiError(
-        409,
-        "INSUFFICIENT",
-        `Only ${formatINR(balance)} is left — ask the family to top up first.`,
-      );
-  }
   const at = input.at ?? new Date();
-  const term = await db.term.findFirst({ where: { startDate: { lte: at }, endDate: { gte: at } } });
-  const entry = await db.imprestEntry.create({
-    data: {
-      ...input,
-      description: input.description.trim(),
-      termId: term?.id,
-      createdById: actor.id,
-      createdAt: at,
-    },
+  const day = istDateOnly(at);
+  const term = await db.term.findFirst({ where: { startDate: { lte: day }, endDate: { gte: day } } });
+  // The balance check and the insert share one transaction behind a per-pupil lock, so two simultaneous
+  // purchases can't both pass the check and overspend.
+  const entry = await db.$transaction(async (tx) => {
+    await tx.$executeRaw`select pg_advisory_xact_lock(hashtext(${"imprest:" + input.studentId}))`;
+    if (input.kind === "EXPENSE") {
+      const rows = await tx.imprestEntry.groupBy({
+        by: ["kind"],
+        where: { studentId: input.studentId },
+        _sum: { amountPaise: true },
+      });
+      const sum = (k: string) => rows.find((r) => r.kind === k)?._sum.amountPaise ?? 0;
+      const balance = sum("CREDIT") - sum("EXPENSE");
+      if (input.amountPaise > balance)
+        throw new ApiError(
+          409,
+          "INSUFFICIENT",
+          `Only ${formatINR(balance)} is left — ask the family to top up first.`,
+        );
+    }
+    return tx.imprestEntry.create({
+      data: {
+        ...input,
+        description: input.description.trim(),
+        termId: term?.id,
+        createdById: actor.id,
+        createdAt: at,
+      },
+    });
   });
   await audit({
     actor,

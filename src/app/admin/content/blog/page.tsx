@@ -3,6 +3,7 @@ import { requireStaff } from "@/lib/auth/session";
 import { db } from "@/lib/db";
 import { formatDate } from "@/lib/dates";
 import { renderMdx } from "@/components/site/mdx";
+import { SafePreview } from "@/components/crm/safe-preview";
 import { PageHeader } from "@/components/crm/page-header";
 import { ActionForm } from "@/components/crm/action-form";
 import { Badge } from "@/components/ui/badge";
@@ -22,7 +23,7 @@ export default async function BlogDrafts({ searchParams }: { searchParams: Promi
   const { id } = await searchParams;
   const drafts = await db.blogDraft.findMany({ orderBy: { updatedAt: "desc" } });
   const current = drafts.find((d) => d.id === id) ?? null;
-  const preview = current ? await renderMdx(current.body).catch(() => null) : null;
+  const preview = current ? await renderMdx(current.body, { trusted: false }).catch(() => null) : null;
   return (
     <>
       <PageHeader
@@ -77,6 +78,7 @@ export default async function BlogDrafts({ searchParams }: { searchParams: Promi
                 key={current?.id ?? "new"}
                 action={saveDraftAction.bind(null, current?.id ?? null)}
                 className="space-y-3 text-sm"
+                redirectTo={current ? undefined : "/admin/content/blog?id={id}"}
               >
                 <label className="block">
                   <span className="mb-1 block text-xs text-muted">Title</span>
@@ -122,7 +124,9 @@ export default async function BlogDrafts({ searchParams }: { searchParams: Promi
               <CardHeader>
                 <CardTitle>Preview</CardTitle>
               </CardHeader>
-              <CardBody className="prose-school max-w-none">{preview}</CardBody>
+              <CardBody className="prose-school max-w-none">
+                <SafePreview>{preview}</SafePreview>
+              </CardBody>
             </Card>
           )}
         </div>

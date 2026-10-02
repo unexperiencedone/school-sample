@@ -1,16 +1,12 @@
 import { requireRole } from "@/lib/auth/session";
-import { db } from "@/lib/db";
+import { circularsFor } from "@/lib/services/portal";
 import { formatDate } from "@/lib/dates";
 
 export const metadata = { title: "Circulars" };
 
 export default async function Circulars() {
-  await requireRole(["PARENT"]);
-  const circulars = await db.announcement.findMany({
-    where: { kind: "CIRCULAR", active: true, OR: [{ expiresAt: null }, { expiresAt: { gt: new Date() } }] },
-    orderBy: { publishedAt: "desc" },
-    take: 50,
-  });
+  const user = await requireRole(["PARENT"]);
+  const circulars = await circularsFor(user, 50);
   return (
     <>
       <p className="t-eyebrow">Circulars</p>

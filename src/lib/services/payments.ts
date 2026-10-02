@@ -12,6 +12,7 @@ import {
 } from "@/integrations/payments";
 import { sha256Hex } from "@/integrations/crypto";
 import { siteUrl } from "@/config/school";
+import { istDateOnly } from "@/lib/dates";
 import { recordPayment } from "./ledger";
 
 /**
@@ -45,11 +46,17 @@ export async function createPaymentOrder(
   if (existing) {
     if (existing.status === "PAID")
       throw new ApiError(409, "ALREADY_PAID", "This payment has already been completed.");
-    if (existing.amountPaise !== input.amountPaise)
+    if (
+      existing.amountPaise !== input.amountPaise ||
+      existing.purpose !== input.purpose ||
+      (existing.studentId ?? null) !== (input.studentId ?? null) ||
+      (existing.invoiceId ?? null) !== (input.invoiceId ?? null) ||
+      (existing.instalmentId ?? null) !== (input.instalmentId ?? null)
+    )
       throw new ApiError(
         409,
         "IDEMPOTENCY_CONFLICT",
-        "A different amount was already requested with this key.",
+        "A different payment was already requested with this key.",
       );
     return { order: existing, checkout: existing.checkout as unknown as Checkout, reused: true };
   }
@@ -150,9 +157,12 @@ async function applyCapture(
     }
     case "IMPREST_TOPUP": {
       if (order.studentId) {
+        const day = istDateOnly(new Date());
+        const term = await tx.term.findFirst({ where: { startDate: { lte: day }, endDate: { gte: day } } });
         await tx.imprestEntry.create({
           data: {
             studentId: order.studentId,
+            termId: term?.id,
             kind: "CREDIT",
             category: "TOP_UP",
             amountPaise: e.amountPaise,

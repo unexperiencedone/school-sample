@@ -38,10 +38,13 @@ export default async function StudentsPage({
     db.classLevel.findMany({ orderBy: { order: "asc" } }),
     db.house.findMany({ orderBy: { name: "asc" } }),
   ]);
-  const where = directoryWhere(
-    { q: sp.q, classId: sp.class, houseId: sp.house, boarding: sp.boarding, status: sp.status },
-    year.id,
-  );
+  const where = directoryWhere({
+    q: sp.q,
+    classId: sp.class,
+    houseId: sp.house,
+    boarding: sp.boarding,
+    status: sp.status,
+  });
   const { rows, next, prev, total } = await cursorList<Row>(
     db.student,
     { where, include: directoryInclude },

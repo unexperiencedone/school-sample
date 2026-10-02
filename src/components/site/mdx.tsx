@@ -135,11 +135,12 @@ const components = {
   ),
 };
 
-export async function renderMdx(source: string) {
+export async function renderMdx(source: string, { trusted = true }: { trusted?: boolean } = {}) {
   const { content } = await compileMDX({
     source,
     components,
-    options: { parseFrontmatter: false, blockJS: false },
+    // Untrusted text (admin drafts) can't run {expressions}; repo content is reviewed like code
+    options: { parseFrontmatter: false, blockJS: !trusted },
   });
   return content;
 }

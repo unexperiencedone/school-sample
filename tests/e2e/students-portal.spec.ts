@@ -229,6 +229,64 @@ test("content: a notice goes live on the website; a circular reaches Year 4 fami
   await expect(page.getByRole("heading", { name: "Year 4 trip to the planetarium (e2e)" })).toBeVisible();
 });
 
+test("a circular for another class stays out of this family's portal", async ({ page }) => {
+  const { ira, anvi } = await demoFamily();
+  const theirs = new Set([ira.classId, anvi.classId]);
+  const other = await testDb.classLevel.findFirstOrThrow({
+    where: { id: { notIn: [...theirs] }, order: { gt: 3 } },
+  });
+  const title = `Only ${other.name} families (e2e ${Date.now() % 100000})`;
+  await loginAs(page, "principal");
+  await page.goto("/admin/comms");
+  await page.getByLabel("Title").fill(title);
+  await page
+    .getByLabel("Letter")
+    .fill("Dear parents,\n\nThis letter is only for one class and must stay private.");
+  await page.locator("select[name=audience]").selectOption(`CLASS:${other.id}`);
+  page.once("dialog", (d) => void d.accept());
+  await page.getByRole("button", { name: "Publish and send" }).click();
+  await expect(page.getByText(/sent to \d+ famil/)).toBeVisible();
+  await loginAs(page, "parent");
+  await page.goto("/portal/circulars");
+  await expect(page.getByRole("heading", { name: "From the school" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: title })).toHaveCount(0);
+});
+
+test("the family-requests queue is for the roles that can act on it", async ({ page }) => {
+  await loginAs(page, "teacher");
+  const res = await page.goto("/admin/students/requests");
+  expect(res?.status()).toBe(404);
+  await loginAs(page, "registrar");
+  await page.goto("/admin/students/requests");
+  await expect(page.getByRole("heading", { name: "Requests from families" })).toBeVisible();
+});
+
+test("repeating pupils are carried into next year, in their own class", async ({ page }) => {
+  const pupil = await testDb.student.findFirstOrThrow({
+    where: { status: "ACTIVE", lastName: { not: "Menon" }, class: { code: "Y5" } },
+    orderBy: { admissionNo: "asc" },
+  });
+  await loginAs(page, "registrar");
+  await page.goto("/admin/students/promotion");
+  await page.getByLabel(`Repeat the year: ${pupil.firstName} ${pupil.lastName}`).check();
+  page.once("dialog", (d) => void d.accept());
+  await page.getByRole("button", { name: /^Promote \d+ pupils$/ }).click();
+  await expect
+    .poll(() =>
+      testDb.studentClassHistory.count({ where: { studentId: pupil.id, year: { name: "2027-28" } } }),
+    )
+    .toBe(1);
+  const after = await testDb.student.findUniqueOrThrow({
+    where: { id: pupil.id },
+    include: { section: { include: { year: true } } },
+  });
+  expect(after.classId).toBe(pupil.classId);
+  expect(after.section?.year.name).toBe("2027-28");
+  // the roll isn't empty after promotion
+  await page.goto(`/admin/students?q=${pupil.admissionNo}`);
+  await expect(page.getByRole("link", { name: `${pupil.firstName} ${pupil.lastName}` })).toBeVisible();
+});
+
 test("axe: portal, students and academics pages (light and dark CRM)", async ({ page }) => {
   test.setTimeout(240_000);
   const { ira } = await demoFamily();

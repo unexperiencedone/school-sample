@@ -54,7 +54,7 @@ export const adminNav: AdminNavItem[] = [
     children: [
       { label: "Directory", href: "/admin/students" },
       { label: "Promotion", href: "/admin/students/promotion", permission: "students:promote" },
-      { label: "Requests", href: "/admin/students/requests" },
+      { label: "Requests", href: "/admin/students/requests", permission: "students:write" },
     ],
   },
   {

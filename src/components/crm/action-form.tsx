@@ -24,7 +24,8 @@ export function ActionForm({
   className?: string;
   confirm?: string;
   resetOnSuccess?: boolean;
-  redirectTo?: string | ((id?: string) => string);
+  /** Where to go on success. `{id}` is replaced with the id the action returned. */
+  redirectTo?: string;
 }) {
   const router = useRouter();
   const ref = useRef<HTMLFormElement>(null);
@@ -43,7 +44,7 @@ export function ActionForm({
           if (!r.ok) return void toast.error(r.error);
           toast.success(r.message ?? "Saved");
           if (resetOnSuccess) ref.current?.reset();
-          if (redirectTo) router.push(typeof redirectTo === "function" ? redirectTo(r.id) : redirectTo);
+          if (redirectTo) router.push(redirectTo.replace("{id}", r.id ?? ""));
         });
       }}
     >

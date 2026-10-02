@@ -1,3 +1,4 @@
+import { formatDate } from "@/lib/dates";
 import { initials } from "@/lib/utils";
 import type { PortalChild } from "@/lib/services/portal";
 
@@ -18,6 +19,12 @@ export function ChildHeader({ child, title }: { child: PortalChild; title: strin
           {child.house ? ` · ${child.house.name} house` : ""} ·{" "}
           {child.status === "PROSPECTIVE" ? "joining soon" : child.admissionNo}
         </p>
+        {!child.onRoll && (
+          <p className="mt-2 inline-block rounded-md bg-sunken px-2.5 py-1 text-sm">
+            {child.status === "ALUMNA" ? "Alumna" : child.status === "TRANSFERRED" ? "Transferred" : "Left"}
+            {child.leftOn ? ` on ${formatDate(child.leftOn)}` : ""} · records are read-only
+          </p>
+        )}
       </div>
       <span
         aria-hidden

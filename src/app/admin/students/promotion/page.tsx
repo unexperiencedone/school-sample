@@ -1,4 +1,6 @@
 import { requireStaff } from "@/lib/auth/session";
+import Link from "next/link";
+import { ApiError } from "@/lib/api";
 import { planPromotion } from "@/lib/services/students";
 import { PageHeader } from "@/components/crm/page-header";
 import { ActionForm } from "@/components/crm/action-form";
@@ -7,28 +9,59 @@ import { Button } from "@/components/ui/button";
 import { Card, CardBody, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Table, THead, Th, Tr, Td } from "@/components/ui/table";
+import { EmptyState } from "@/components/ui/states";
 import { promoteAction } from "../actions";
 
 export const metadata = { title: "Year-end promotion" };
 export const dynamic = "force-dynamic";
 
-/** Preview first: who moves where. Tick "Exclude" for anyone repeating a year or leaving early, then run it once. */
+/** Preview first: who moves where. Tick "Repeat" for anyone staying in her class next year, then run it once. */
 export default async function PromotionPage() {
   await requireStaff("students:promote");
-  const plan = await planPromotion();
+  const plan = await planPromotion().catch((e) => {
+    if (e instanceof ApiError && e.code === "NO_NEXT_YEAR") return null;
+    throw e;
+  });
+  if (!plan)
+    return (
+      <>
+        <PageHeader title="Year-end promotion" description="Moves the roll into next year." />
+        <EmptyState
+          title="Next year isn't set up yet"
+          action={
+            <Link href="/admin/academics/years" className="underline">
+              Set up academic years
+            </Link>
+          }
+        >
+          Create next year&apos;s academic year and its sections, then come back to preview the move.
+        </EmptyState>
+      </>
+    );
   const byClass = new Map<string, typeof plan.rows>();
   for (const r of plan.rows) byClass.set(r.fromClass, [...(byClass.get(r.fromClass) ?? []), r]);
   const leavers = plan.rows.filter((r) => !r.toClass).length;
   const flagged = plan.rows.filter((r) => r.note && r.toClass).length;
+  const blocked = plan.rows.filter((r) => r.toClass && !r.toSectionId).length;
+  const movable = plan.rows.length - blocked;
   return (
     <>
       <PageHeader
         title="Year-end promotion"
         description={`Moves the ${plan.current.name} roll into ${plan.next.name}: same section in the next class where there is room, Year 13 leavers to alumnae. Nothing changes until you confirm.`}
       />
-      <div className="mb-5 grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <StatTile kpi={{ key: "move", label: "Move up", value: String(plan.rows.length - leavers) }} />
+      <div className="mb-5 grid grid-cols-2 gap-3 lg:grid-cols-5">
+        <StatTile kpi={{ key: "move", label: "Move up", value: String(movable - leavers) }} />
         <StatTile kpi={{ key: "leave", label: "Leave (Year 13)", value: String(leavers) }} />
+        <StatTile
+          kpi={{
+            key: "blocked",
+            label: "Blocked",
+            value: String(blocked),
+            sub: "No section next year",
+            status: blocked ? "critical" : "good",
+          }}
+        />
         <StatTile
           kpi={{
             key: "flag",
@@ -44,7 +77,7 @@ export default async function PromotionPage() {
       </div>
       <ActionForm
         action={promoteAction}
-        confirm={`Move ${plan.rows.length} pupils into ${plan.next.name}? This is recorded in the audit log.`}
+        confirm={`Move ${movable} pupils into ${plan.next.name}? Anyone ticked "Repeat" stays in her class. This is recorded in the audit log.`}
         redirectTo="/admin/students"
         className="space-y-5"
       >
@@ -59,7 +92,7 @@ export default async function PromotionPage() {
             <Table>
               <THead>
                 <tr>
-                  <Th className="w-20">Exclude</Th>
+                  <Th className="w-20">Repeat</Th>
                   <Th>Pupil</Th>
                   <Th>From</Th>
                   <Th>To</Th>
@@ -75,7 +108,7 @@ export default async function PromotionPage() {
                         name="exclude"
                         value={r.studentId}
                         className="size-4"
-                        aria-label={`Exclude ${r.name}`}
+                        aria-label={`Repeat the year: ${r.name}`}
                       />
                     </Td>
                     <Td>
@@ -103,7 +136,7 @@ export default async function PromotionPage() {
                 defaultValue={`Year-end promotion into ${plan.next.name}`}
               />
             </label>
-            <Button type="submit">Promote {plan.rows.length} pupils</Button>
+            <Button type="submit">Promote {movable} pupils</Button>
           </CardBody>
         </Card>
       </ActionForm>

@@ -39,7 +39,11 @@ export default async function StudentPage({ params }: { params: Promise<{ id: st
   const [houses, sections] = await Promise.all([
     db.house.findMany({ orderBy: { name: "asc" } }),
     db.section.findMany({
-      where: { classId: s.classId, year: { isCurrent: true } },
+      // sections of the year she is placed in (next year's, right after promotion), else the current year
+      where: {
+        classId: s.classId,
+        ...(s.section ? { yearId: s.section.yearId } : { year: { isCurrent: true } }),
+      },
       orderBy: { name: "asc" },
     }),
   ]);

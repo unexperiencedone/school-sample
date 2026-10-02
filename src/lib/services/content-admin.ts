@@ -144,7 +144,13 @@ export async function sendCircular(
     where: { students: { some: { isPrimary: true, student: { status: "ACTIVE", ...studentFilter } } } },
   });
   const circular = await db.announcement.create({
-    data: { kind: "CIRCULAR", title: input.title.trim(), body: input.body.trim(), createdById: actor.id },
+    data: {
+      kind: "CIRCULAR",
+      title: input.title.trim(),
+      body: input.body.trim(),
+      audience: input.audience,
+      createdById: actor.id,
+    },
   });
   let sent = 0;
   for (const g of guardians) {

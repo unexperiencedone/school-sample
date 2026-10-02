@@ -1,7 +1,7 @@
 import { requireRole } from "@/lib/auth/session";
 import { db } from "@/lib/db";
 import { formatINR } from "@/lib/money";
-import { formatDate } from "@/lib/dates";
+import { formatDate, istDateOnly } from "@/lib/dates";
 import { IMPREST_CATEGORIES, ledger } from "@/lib/services/imprest";
 import { selectChild } from "@/lib/services/portal";
 import { ChildHeader, NoChildren } from "@/components/portal/child-card";
@@ -22,15 +22,17 @@ export default async function PocketMoney({ searchParams }: { searchParams: Prom
         </p>
       </>
     );
-  const [rows, year] = await Promise.all([
+  const today = istDateOnly(new Date());
+  const [rows, year, term] = await Promise.all([
     ledger(child.id),
     db.academicYear.findFirstOrThrow({ where: { isCurrent: true }, include: { imprestPolicies: true } }),
+    db.term.findFirst({ where: { startDate: { lte: today }, endDate: { gte: today } } }),
   ]);
   const balance = rows.at(-1)?.balance ?? 0;
   const allowance =
     year.imprestPolicies.find((p) => p.boardingType === child.boardingType)?.amountPerTermPaise ?? 0;
   const spentThisTerm = rows
-    .filter((r) => r.kind === "EXPENSE" && r.term?.name === rows.at(-1)?.term?.name)
+    .filter((r) => r.kind === "EXPENSE" && term && r.term?.name === term.name)
     .reduce((a, r) => a + r.amountPaise, 0);
   return (
     <>
@@ -46,7 +48,7 @@ export default async function PocketMoney({ searchParams }: { searchParams: Prom
               Termly allowance {formatINR(allowance)} · spent this term {formatINR(spentThisTerm)}
             </p>
           </div>
-          <TopUp studentId={child.id} />
+          {child.onRoll && <TopUp key={child.id} studentId={child.id} />}
           <p className="text-xs text-muted">
             Top-ups show here within a minute of payment, with a receipt in Fees › Payments.
           </p>

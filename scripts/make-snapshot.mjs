@@ -19,6 +19,7 @@ const dump = execFileSync(
     "--data-only",
     "--no-owner",
     "--no-privileges",
+    "--column-inserts", // named columns: a later migration that adds a column can't break the load
     "--rows-per-insert=200", // a self-referencing table (Lead) is only valid within one statement
     "--exclude-table=_prisma_migrations",
   ],
