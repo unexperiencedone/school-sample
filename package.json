@@ -29,7 +29,7 @@
     "images:fetch": "tsx scripts/fetch-images.ts",
     "credits": "tsx scripts/build-credits.ts",
     "verify-env": "tsx scripts/verify-env.ts",
-    "postinstall": "prisma generate",
+    "postinstall": "node scripts/ensure-env.mjs && prisma generate",
     "prepare": "husky"
   },
   "prisma": {
