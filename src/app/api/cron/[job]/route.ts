@@ -40,5 +40,7 @@ async function run(req: Request, { params }: { params: { job: string } }) {
   }
 }
 
+/** GET /api/cron/[job] — runs a scheduled job (the method Vercel Cron uses). Needs the cron secret as a bearer token. */
 export const GET = route<{ job: string }>(run);
+/** POST /api/cron/[job] — runs a scheduled job from any other scheduler. Needs the cron secret as a bearer token. */
 export const POST = route<{ job: string }>(run);

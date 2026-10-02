@@ -5,7 +5,7 @@ import { db } from "@/lib/db";
 import { cursorList, parseListParams } from "@/lib/crm/list";
 import { TRANSITIONS } from "@/lib/services/admissions";
 
-/** GET /api/admin/applications?stage=&class=&year=&q=&sort=&dir=&size=&after=&before= */
+/** GET /api/admin/applications — cursor-paginated list; filter with ?stage=&class=&year=&q=, sort with ?sort=&dir= */
 export const GET = route(
   async (req) => {
     const sp = Object.fromEntries(new URL(req.url).searchParams);

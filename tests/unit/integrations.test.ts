@@ -143,6 +143,8 @@ describe("storage", () => {
     Object.assign(process.env, {
       S3_BUCKET: "b",
       S3_REGION: "ap-south-1",
+      S3_ENDPOINT: "", // a developer's own .env must not leak into the test
+      AWS_ENDPOINT_URL_S3: "",
       AWS_ACCESS_KEY_ID: "AKIA",
       AWS_SECRET_ACCESS_KEY: "s",
     });
@@ -153,7 +155,14 @@ describe("storage", () => {
     expect(url.pathname).toBe("/docs/a%20b.pdf");
     expect(url.searchParams.get("X-Amz-Credential")).toBe("AKIA/20260101/ap-south-1/s3/aws4_request");
     expect(url.searchParams.get("X-Amz-Signature")).toMatch(/^[0-9a-f]{64}$/);
-    for (const k of ["S3_BUCKET", "S3_REGION", "AWS_ACCESS_KEY_ID", "AWS_SECRET_ACCESS_KEY"])
+    for (const k of [
+      "S3_BUCKET",
+      "S3_REGION",
+      "S3_ENDPOINT",
+      "AWS_ENDPOINT_URL_S3",
+      "AWS_ACCESS_KEY_ID",
+      "AWS_SECRET_ACCESS_KEY",
+    ])
       delete process.env[k];
   });
 });
@@ -162,6 +171,8 @@ describe("storage: S3-compatible stores", () => {
   it("accepts the standard AWS variable names and presigns path-style for a custom endpoint", () => {
     Object.assign(process.env, {
       S3_BUCKET: "students",
+      S3_REGION: "",
+      S3_ENDPOINT: "",
       AWS_REGION: "ap-southeast-1",
       AWS_ENDPOINT_URL_S3: "https://storage.example.test",
       AWS_ACCESS_KEY_ID: "AK",
@@ -175,6 +186,8 @@ describe("storage: S3-compatible stores", () => {
     expect(url.searchParams.get("X-Amz-Credential")).toBe("AK/20260101/ap-southeast-1/s3/aws4_request");
     for (const k of [
       "S3_BUCKET",
+      "S3_REGION",
+      "S3_ENDPOINT",
       "AWS_REGION",
       "AWS_ENDPOINT_URL_S3",
       "AWS_ACCESS_KEY_ID",

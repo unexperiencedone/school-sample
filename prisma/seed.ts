@@ -1,7 +1,7 @@
 import { PrismaClient } from "@prisma/client";
 import { seedAcademics, seedUsers } from "./seed/core";
 import { seedFees } from "./seed/fees";
-import { seedVacancies } from "./seed/careers";
+import { seedStaffApplications, seedVacancies } from "./seed/careers";
 import { seedSections, seedStaff, seedStudents, seedTimetable } from "./seed/people";
 import { SEED_TODAY, seedFinance, seedRefundsAndImprest } from "./seed/finance";
 import { seedApplications, seedLeads } from "./seed/admissions";
@@ -59,8 +59,9 @@ export async function seed(client: PrismaClient = db, log: (m: string) => void =
     });
   step(`${students.length} students & guardians`);
   await seedContent(client, users);
-  await seedVacancies(client);
-  step("events, announcements, vacancies");
+  const vacancies = await seedVacancies(client);
+  const staffApplications = await seedStaffApplications(client, rng, vacancies);
+  step(`events, announcements, vacancies, ${staffApplications} staff applications`);
   const { payments } = await seedFinance(client, rng, academics, students, users);
   step(`invoices & ${payments} payments`);
   await seedRefundsAndImprest(client, rng, academics, students, users);

@@ -1,9 +1,23 @@
 import type { HTMLAttributes, TdHTMLAttributes, ThHTMLAttributes } from "react";
 import { cn } from "@/lib/utils";
 
-export function Table({ className, ...props }: HTMLAttributes<HTMLTableElement>) {
+/**
+ * `scrollLabel` makes the horizontal scroll area a labelled, focusable region so keyboard users can scroll a wide
+ * table. Pass it for tables that can overflow (many columns); narrow tables don't need an extra tab stop.
+ */
+export function Table({
+  className,
+  scrollLabel,
+  ...props
+}: HTMLAttributes<HTMLTableElement> & { scrollLabel?: string }) {
   return (
-    <div className="relative w-full overflow-x-auto">
+    <div
+      className={cn(
+        "relative w-full overflow-x-auto",
+        scrollLabel && "focus-visible:outline-3 focus-visible:-outline-offset-3 focus-visible:outline-focus",
+      )}
+      {...(scrollLabel ? { role: "region", "aria-label": scrollLabel, tabIndex: 0 } : {})}
+    >
       <table className={cn("w-full border-collapse text-sm", className)} {...props} />
     </div>
   );

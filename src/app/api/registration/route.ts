@@ -33,6 +33,7 @@ const patchSchema = z.object({
   declared: z.literal(true).optional(),
 });
 
+/** PATCH /api/registration — save a later step (parents, boarding, declaration) of the draft; needs the draft token. */
 export const PATCH = route(async (req) => {
   const body = await parseJson(req, patchSchema);
   const app = await assertApplicationAccess(req, body.id);
