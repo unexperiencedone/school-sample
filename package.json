@@ -39,6 +39,8 @@
     "@fontsource-variable/fraunces": "^5.3.0",
     "@fontsource-variable/hanken-grotesk": "^5.3.0",
     "@hookform/resolvers": "^5.9.1",
+    "@neon/config": "^1.8.3",
+    "@neon/env": "^1.4.8",
     "@node-rs/argon2": "^2.2.1",
     "@photo-sphere-viewer/core": "^5.15.1",
     "@photo-sphere-viewer/markers-plugin": "^5.15.1",
