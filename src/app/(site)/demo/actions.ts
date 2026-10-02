@@ -6,8 +6,6 @@ import { audit } from "@/lib/audit";
 import { isDemoMode } from "@/config/school";
 import { loadSnapshot, withClient } from "@/lib/demo/load-snapshot.mjs";
 
-export const maxDuration = 60;
-
 /** Puts the sample school back exactly as it was shipped (super admin, demo mode only). */
 export async function resetDemo(): Promise<void> {
   if (!isDemoMode()) throw new Error("Demo mode is off");

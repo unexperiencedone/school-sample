@@ -14,6 +14,7 @@ export const metadata: Metadata = {
   robots: { index: false, follow: false },
 };
 export const dynamic = "force-dynamic";
+export const maxDuration = 60; // the Reset action runs under this route's limit
 
 const btn =
   "inline-flex min-h-11 items-center justify-center rounded-full px-5 text-sm font-semibold transition-colors";
