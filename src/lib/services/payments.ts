@@ -225,11 +225,17 @@ export async function processWebhook(
         },
       });
     } catch (err) {
-      if ((err as { code?: string }).code === "P2002") {
+      if ((err as { code?: string }).code !== "P2002") throw err;
+      // Seen before. Skip it only if it was applied: a delivery that failed part-way must be retried, or the
+      // gateway's retry would be swallowed as a duplicate and the payment never credited.
+      const seen = await db.webhookEvent.findUnique({
+        where: { provider_eventId: { provider, eventId: e.eventId } },
+        select: { processedAt: true },
+      });
+      if (seen?.processedAt) {
         result.duplicates++;
         continue;
       }
-      throw err;
     }
     const effects: Effect[] = [];
     try {

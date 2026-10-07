@@ -9,6 +9,8 @@ import { verifyPassword } from "./password";
 import { DEMO_USERS } from "./demo-users";
 import { isDemoMode } from "@/config/school";
 import { sendTemplate } from "@/lib/notify";
+import { rateLimit } from "@/lib/rate-limit";
+import { ipFrom } from "@/lib/request";
 
 /** The seeded demo accounts (known password, public email addresses) only exist to be used while demo mode is on. */
 const isDemoEmail = (email: string) => DEMO_USERS.some((d) => d.email === email.toLowerCase());
@@ -23,10 +25,17 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       id: "credentials",
       name: "Email and password",
       credentials: { email: {}, password: {} },
-      async authorize(raw) {
+      async authorize(raw, request) {
         const parsed = credentialsSchema.safeParse(raw);
         if (!parsed.success) return null;
         if (!isDemoMode() && isDemoEmail(parsed.data.email)) return null;
+        // Limited here too, not only in the login action: /api/auth/callback/credentials can be called directly.
+        // Per account as well as per IP, so guessing one password from many addresses is also bounded.
+        const [byIp, byEmail] = await Promise.all([
+          rateLimit(`auth-ip:${ipFrom(request)}`, 20, 300),
+          rateLimit(`auth-email:${parsed.data.email.toLowerCase()}`, 10, 900),
+        ]);
+        if (!byIp.ok || !byEmail.ok) return null;
         const user = await db.user.findUnique({ where: { email: parsed.data.email.toLowerCase() } });
         if (!user?.passwordHash || !user.active) return null;
         if (!(await verifyPassword(user.passwordHash, parsed.data.password))) return null;
@@ -56,6 +65,8 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       from: process.env.EMAIL_FROM ?? "hello@aurelia-sample.test",
       options: {},
       async sendVerificationRequest({ identifier, url }) {
+        // The sign-in endpoint is public, so cap links per address (silently, to not reveal anything).
+        if (!(await rateLimit(`magic-email:${identifier.toLowerCase()}`, 3, 600)).ok) return;
         await sendTemplate({ template: "magic-link", to: { email: identifier }, data: { url } });
       },
     },
