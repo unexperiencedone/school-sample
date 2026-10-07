@@ -16,7 +16,7 @@ export function writeCredits(slots: Slot[]) {
     "",
     "Generated from `content/images.manifest.json` by `pnpm credits` (also run by `pnpm images:fetch`). The same list is rendered at `/credits`.",
     "",
-    "Stock photos come only from Unsplash and Pexels via their official APIs, under their respective free licences, downloaded once and served locally.",
+    "Stock photos come only from Unsplash and Pexels (hand-picked on unsplash.com or via the official APIs), under their respective free licences, downloaded once and served locally.",
     "No image shows a real school's pupils, buildings or branding. All people named on the site are fictional.",
     "",
     "## Stock photographs",

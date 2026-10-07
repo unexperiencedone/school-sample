@@ -4,6 +4,7 @@
  *   pnpm images:fetch            # fetch missing slots
  *   pnpm images:fetch --force    # refetch everything
  *   pnpm images:fetch --placeholders  # regenerate designed placeholders only (offline)
+ *   pnpm images:fetch --picks    # use the hand-picked Unsplash photos in content/images.picks.json (no key)
  *
  * Providers (official APIs only, keys are free):
  *   UNSPLASH_ACCESS_KEY → https://unsplash.com/developers  (create an app; 50 req/h in demo mode)
@@ -32,6 +33,7 @@ type Slot = {
 
 const ROOT = process.cwd();
 const MANIFEST = path.join(ROOT, "content/images.manifest.json");
+const PICKS = path.join(ROOT, "content/images.picks.json");
 const OUT = path.join(ROOT, "public/images");
 const ALWAYS_GENERATED = new Set(["panorama", "avatar", "map"]);
 const UTM = "utm_source=aurelia_hall_sample&utm_medium=referral";
@@ -95,9 +97,24 @@ async function fromPexels(s: Slot, key: string): Promise<{ buf: Buffer; credit: 
   };
 }
 
+type Pick = { photo: string; src: string; photographer: string; profile: string };
+
+/** A hand-picked photo from content/images.picks.json (chosen on unsplash.com, so no API key is needed). */
+async function fromPick(s: Slot, p: Pick): Promise<{ buf: Buffer; credit: Credit } | null> {
+  const img = await fetch(`${p.src}?w=${s.minWidth}&fm=jpg&q=85&fit=max`);
+  if (!img.ok) return null;
+  return {
+    buf: Buffer.from(await img.arrayBuffer()),
+    credit: { photographer: p.photographer, source: "Unsplash", url: `${p.profile}?${UTM}` },
+  };
+}
+
 async function main() {
   const force = process.argv.includes("--force");
   const placeholdersOnly = process.argv.includes("--placeholders");
+  const picks: Record<string, Pick> = process.argv.includes("--picks")
+    ? JSON.parse(readFileSync(PICKS, "utf8")).picks
+    : {};
   const manifest = JSON.parse(readFileSync(MANIFEST, "utf8")) as { $comment: string; slots: Slot[] };
   mkdirSync(OUT, { recursive: true });
   mkdirSync(path.join(ROOT, "public/herovideo"), { recursive: true });
@@ -108,7 +125,8 @@ async function main() {
   for (const s of manifest.slots) {
     const file = path.join(ROOT, "public", s.localPath);
     const isStock = s.credit && s.credit.source !== "Generated";
-    if (existsSync(file) && !force && (isStock || !(unsplash || pexels) || placeholdersOnly)) {
+    const pick = picks[s.slot];
+    if (existsSync(file) && !force && (isStock || !(unsplash || pexels || pick) || placeholdersOnly)) {
       if (!isStock && !ALWAYS_GENERATED.has(s.scene)) needsPhoto.push(s.slot);
       if (!placeholdersOnly || isStock) continue;
     }
@@ -116,7 +134,8 @@ async function main() {
     let result: { buf: Buffer; credit: Credit } | null = null;
     if (!placeholdersOnly && !ALWAYS_GENERATED.has(s.scene)) {
       try {
-        if (unsplash) result = await fromUnsplash(s, unsplash);
+        if (pick) result = await fromPick(s, pick);
+        if (!result && unsplash) result = await fromUnsplash(s, unsplash);
         if (!result && pexels) result = await fromPexels(s, pexels);
         if (unsplash || pexels) await sleep(1200);
       } catch (e) {

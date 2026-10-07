@@ -1,0 +1,485 @@
+{
+  "$comment": "Hand-picked Unsplash photos (Unsplash License), one per slot in images.manifest.json. Applied by `pnpm images:fetch --picks`, no API key needed.",
+  "picks": {
+    "feature-boarding": {
+      "photo": "https://unsplash.com/photos/5jEXDhL2NuA",
+      "src": "https://images.unsplash.com/photo-1777499669860-9cfb11897126",
+      "photographer": "Margo Evardson",
+      "profile": "https://unsplash.com/@stadinstudio"
+    },
+    "about-welcome": {
+      "photo": "https://unsplash.com/photos/ignY7go7jyk",
+      "src": "https://images.unsplash.com/photo-1778409425510-4ff7230bed80",
+      "photographer": "Paolo Gregotti",
+      "profile": "https://unsplash.com/@paolo_gregotti"
+    },
+    "feature-virtual-tour": {
+      "photo": "https://unsplash.com/photos/ESvUAK1bdc8",
+      "src": "https://images.unsplash.com/photo-1633864468078-7245302da69e",
+      "photographer": "Mark S",
+      "profile": "https://unsplash.com/@southcm2"
+    },
+    "hero-home-mobile": {
+      "photo": "https://unsplash.com/photos/JoembQ",
+      "src": "https://images.unsplash.com/photo-1724674162363-cd54027e3c1f",
+      "photographer": "Alex Kolundzija",
+      "profile": "https://unsplash.com/@alexkolund"
+    },
+    "feature-open-morning": {
+      "photo": "https://unsplash.com/photos/tv8PIPPY3rQ",
+      "src": "https://images.unsplash.com/photo-1566131807516-e3b3cd1a89d1",
+      "photographer": "Pauline Loroy",
+      "profile": "https://unsplash.com/@paulinel"
+    },
+    "hero-home": {
+      "photo": "https://unsplash.com/photos/ZOCeg2jelfs",
+      "src": "https://images.unsplash.com/photo-1790785628444-e5565b40cc4a",
+      "photographer": "Yasmein Nashagh",
+      "profile": "https://unsplash.com/@yasmeina"
+    },
+    "about-excellence": {
+      "photo": "https://unsplash.com/photos/EM9Mu_uLUj4",
+      "src": "https://images.unsplash.com/photo-1602928321679-560bb453f190",
+      "photographer": "Fulvio Ciccolo",
+      "profile": "https://unsplash.com/@scentspiracy"
+    },
+    "about-all-girls": {
+      "photo": "https://unsplash.com/photos/nseQVzyQll4",
+      "src": "https://images.unsplash.com/photo-1538352886333-5233ad94cb8b",
+      "photographer": "Jeffrey F Lin",
+      "profile": "https://unsplash.com/@jeffreyflin"
+    },
+    "about-story": {
+      "photo": "https://unsplash.com/photos/c39biyghVmE",
+      "src": "https://images.unsplash.com/photo-1704750843798-e7655f99a643",
+      "photographer": "Ä°rfan Simsar",
+      "profile": "https://unsplash.com/@irfansimsar"
+    },
+    "about-founding-principal": {
+      "photo": "https://unsplash.com/photos/UPnF1esOuWw",
+      "src": "https://images.unsplash.com/photo-1782243206283-f0973fffedfc",
+      "photographer": "Michal KuÄera",
+      "profile": "https://unsplash.com/@m_kucera_12"
+    },
+    "about-mission": {
+      "photo": "https://unsplash.com/photos/dVtAgmmgtiQ",
+      "src": "https://images.unsplash.com/photo-1621835700685-9399a34c3d80",
+      "photographer": "SalomÃ© Guruli",
+      "profile": "https://unsplash.com/@sguruli"
+    },
+    "about-partnerships": {
+      "photo": "https://unsplash.com/photos/knI",
+      "src": "https://images.unsplash.com/photo-1522065893269-6fd20f6d7438",
+      "photographer": "Jasmin Schreiber",
+      "profile": "https://unsplash.com/@lavievagabonde"
+    },
+    "about-recognition": {
+      "photo": "https://unsplash.com/photos/X7XmBss_KSM",
+      "src": "https://images.unsplash.com/photo-1770482228588-270b08d2d376",
+      "photographer": "breizhography",
+      "profile": "https://unsplash.com/@breizhography"
+    },
+    "about-why-city": {
+      "photo": "https://unsplash.com/photos/E5egsk4eUQ0",
+      "src": "https://images.unsplash.com/photo-1595433306946-233f47e4af3a",
+      "photographer": "Remi Clinton",
+      "profile": "https://unsplash.com/@remi_anton"
+    },
+    "about-alumnae": {
+      "photo": "https://unsplash.com/photos/_kd5cxwZOK4",
+      "src": "https://images.unsplash.com/photo-1541339907198-e08756dedf3f",
+      "photographer": "Pang Yuhao",
+      "profile": "https://unsplash.com/@yuhao"
+    },
+    "admissions": {
+      "photo": "https://unsplash.com/photos/vhXISsIR8rA",
+      "src": "https://images.unsplash.com/photo-1758642177571-25f103701758",
+      "photographer": "Jimmy Liu",
+      "profile": "https://unsplash.com/@jimmy__liu"
+    },
+    "scholarships": {
+      "photo": "https://unsplash.com/photos/B8HRcng8Ibg",
+      "src": "https://images.unsplash.com/photo-1769092992766-9504cdd93696",
+      "photographer": "Ilya Semenov",
+      "profile": "https://unsplash.com/@si1og"
+    },
+    "fees": {
+      "photo": "https://unsplash.com/photos/h2aDKwigQeA",
+      "src": "https://images.unsplash.com/photo-1611125832047-1d7ad1e8e48f",
+      "photographer": "Recha Oktaviani",
+      "profile": "https://unsplash.com/@rechaoktaviani"
+    },
+    "why-igcse": {
+      "photo": "https://unsplash.com/photos/F8t2VGnI47I",
+      "src": "https://images.unsplash.com/photo-1541829070764-84a7d30dd3f3",
+      "photographer": "Changbok Ko",
+      "profile": "https://unsplash.com/@kochangbok"
+    },
+    "curriculum": {
+      "photo": "https://unsplash.com/photos/OPpCbAAKWv8",
+      "src": "https://images.unsplash.com/photo-1635372722656-389f87a941b7",
+      "photographer": "Thomas T",
+      "profile": "https://unsplash.com/@pyssling240"
+    },
+    "section-prep": {
+      "photo": "https://unsplash.com/photos/a3JscvI6eBc",
+      "src": "https://images.unsplash.com/photo-1759662280683-520528fb4c5a",
+      "photographer": "Sorin Basangeac",
+      "profile": "https://unsplash.com/@sorinbasangeac"
+    },
+    "section-pre-prep": {
+      "photo": "https://unsplash.com/photos/cylPETXS7is",
+      "src": "https://images.unsplash.com/photo-1607211851821-8be3cd6146f0",
+      "photographer": "Phil Hearing",
+      "profile": "https://unsplash.com/@philhearing"
+    },
+    "section-upper": {
+      "photo": "https://unsplash.com/photos/H9t723yPjYI",
+      "src": "https://images.unsplash.com/photo-1554475901-4538ddfbccc2",
+      "photographer": "Alex",
+      "profile": "https://unsplash.com/@alexkondratiev"
+    },
+    "section-sixth": {
+      "photo": "https://unsplash.com/photos/klbApl9mxr0",
+      "src": "https://images.unsplash.com/photo-1741699428220-65f37f3fbbcb",
+      "photographer": "Zoshua Colah",
+      "profile": "https://unsplash.com/@zoshuacolah"
+    },
+    "boarding-full": {
+      "photo": "https://unsplash.com/photos/9sTuZHhYyMw",
+      "src": "https://images.unsplash.com/photo-1550514704-91c29ba3442a",
+      "photographer": "Andrew Ridley",
+      "profile": "https://unsplash.com/@aridley88"
+    },
+    "boarding-flexi": {
+      "photo": "https://unsplash.com/photos/gPYEOrmG3sU",
+      "src": "https://images.unsplash.com/photo-1585521405730-50a7e2fb28ca",
+      "photographer": "Richard Wang",
+      "profile": "https://unsplash.com/@rrricharddd"
+    },
+    "boarding-day": {
+      "photo": "https://unsplash.com/photos/WYNd1bqBNOY",
+      "src": "https://images.unsplash.com/photo-1600965179346-bf53a7ff83f8",
+      "photographer": "Ilse Orsel",
+      "profile": "https://unsplash.com/@lgtts"
+    },
+    "programme-atelier": {
+      "photo": "https://unsplash.com/photos/DS4",
+      "src": "https://images.unsplash.com/photo-1557243962-0a093922933f",
+      "photographer": "Marvin Meyer",
+      "profile": "https://unsplash.com/@marvelous"
+    },
+    "programme-horizon": {
+      "photo": "https://unsplash.com/photos/wAOKtzvZ350",
+      "src": "https://images.unsplash.com/photo-1550486686-a496af34a2d5",
+      "photographer": "Gregory DALLEAU",
+      "profile": "https://unsplash.com/@gregda"
+    },
+    "careers": {
+      "photo": "https://unsplash.com/photos/Qw6wa96IvvQ",
+      "src": "https://images.unsplash.com/photo-1740635341299-3b8e3490f546",
+      "photographer": "Nathan Cima",
+      "profile": "https://unsplash.com/@nathan_cima"
+    },
+    "careers-ethos": {
+      "photo": "https://unsplash.com/photos/26MJGnCM0Wc",
+      "src": "https://images.unsplash.com/photo-1532622785990-d2c36a76f5a6",
+      "photographer": "Kaleidico",
+      "profile": "https://unsplash.com/@kaleidico"
+    },
+    "careers-living": {
+      "photo": "https://unsplash.com/photos/uwTX2Xfw9M",
+      "src": "https://images.unsplash.com/photo-1779610908286-7f4e7cfc6dca",
+      "photographer": "Darshan Jain",
+      "profile": "https://unsplash.com/@darshanjain885"
+    },
+    "careers-care": {
+      "photo": "https://unsplash.com/photos/FPxYqU",
+      "src": "https://images.unsplash.com/photo-1521012012373-6a85bade18da",
+      "photographer": "Joanna Kosinska",
+      "profile": "https://unsplash.com/@joannakosinska"
+    },
+    "campus-amenities": {
+      "photo": "https://unsplash.com/photos/cvw",
+      "src": "https://images.unsplash.com/photo-1508855898412-54387cfbb044",
+      "photographer": "Abigail Lynn",
+      "profile": "https://unsplash.com/@shmabbss"
+    },
+    "campus-sports": {
+      "photo": "https://unsplash.com/photos/cXaUAkLTauo",
+      "src": "https://images.unsplash.com/photo-1629863550699-35a4c07e2e8d",
+      "photographer": "Joshua Hoehne",
+      "profile": "https://unsplash.com/@joshua_hoehne"
+    },
+    "campus-library": {
+      "photo": "https://unsplash.com/photos/aTJuo",
+      "src": "https://images.unsplash.com/photo-1784232816290-45fb91fe1f07",
+      "photographer": "Gunnar RidderstrÃ¶m",
+      "profile": "https://unsplash.com/@gunnarridder"
+    },
+    "campus-transport": {
+      "photo": "https://unsplash.com/photos/G0NqOuwqyFQ",
+      "src": "https://images.unsplash.com/photo-1602248406547-bda7af9fb7e9",
+      "photographer": "Lisa Boonaerts",
+      "profile": "https://unsplash.com/@lisaboonaerts"
+    },
+    "contact": {
+      "photo": "https://unsplash.com/photos/aKoucuNPZ6A",
+      "src": "https://images.unsplash.com/photo-1785147102267-2178617a38a0",
+      "photographer": "TrÆ°Æ¡ng Tuyáº¿t Ly",
+      "profile": "https://unsplash.com/@liliantruong2603"
+    },
+    "events": {
+      "photo": "https://unsplash.com/photos/kTT8mJ5pPpc",
+      "src": "https://images.unsplash.com/photo-1771911654088-36080143c3bd",
+      "photographer": "ARTO SURAJ",
+      "profile": "https://unsplash.com/@artosuraj"
+    },
+    "blog": {
+      "photo": "https://unsplash.com/photos/tVugl_rtvHA",
+      "src": "https://images.unsplash.com/photo-1558210834-473f430c09ac",
+      "photographer": "Fernando Hernandez",
+      "profile": "https://unsplash.com/@_ferh97"
+    },
+    "resources": {
+      "photo": "https://unsplash.com/photos/XN4T2PVUUgk",
+      "src": "https://images.unsplash.com/photo-1468779036391-52341f60b55d",
+      "photographer": "Beatriz PÃ©rez Moya",
+      "profile": "https://unsplash.com/@beatriz_perez"
+    },
+    "register": {
+      "photo": "https://unsplash.com/photos/hjwKMkehBco",
+      "src": "https://images.unsplash.com/photo-1473186505569-9c61870c11f9",
+      "photographer": "Ãlvaro Serrano",
+      "profile": "https://unsplash.com/@alvaroserrano"
+    },
+    "virtual-tour": {
+      "photo": "https://unsplash.com/photos/yUUkGZeiwI",
+      "src": "https://images.unsplash.com/photo-1784162075161-9efc77355cd7",
+      "photographer": "Angelica Hasbon",
+      "profile": "https://unsplash.com/@angelicahasbon"
+    },
+    "faculty": {
+      "photo": "https://unsplash.com/photos/YhfxJpa_Ch0",
+      "src": "https://images.unsplash.com/photo-1544456203-0af5a69f5789",
+      "photographer": "Praveen Gupta",
+      "profile": "https://unsplash.com/@praveeeeeeeen"
+    },
+    "tour-booking": {
+      "photo": "https://unsplash.com/photos/FZDahYuTc7E",
+      "src": "https://images.unsplash.com/photo-1791074492166-dfbaa6d66ba1",
+      "photographer": "MChe Lee",
+      "profile": "https://unsplash.com/@mclee"
+    },
+    "sport-athletics": {
+      "photo": "https://unsplash.com/photos/1NwE",
+      "src": "https://images.unsplash.com/photo-1516487200032-8532cb603261",
+      "photographer": "Chau CÃ©dric",
+      "profile": "https://unsplash.com/@cchau"
+    },
+    "sport-swimming": {
+      "photo": "https://unsplash.com/photos/xs9r8fPUats",
+      "src": "https://images.unsplash.com/photo-1730244548329-4ae2f4fcaa7c",
+      "photographer": "Mariusz Smenzyk",
+      "profile": "https://unsplash.com/@msmenzyk"
+    },
+    "sport-tennis": {
+      "photo": "https://unsplash.com/photos/PbYugn4",
+      "src": "https://images.unsplash.com/photo-1554068865-24cecd4e34b8",
+      "photographer": "Moises Alex",
+      "profile": "https://unsplash.com/@arnok"
+    },
+    "sport-netball": {
+      "photo": "https://unsplash.com/photos/uzg113cB78M",
+      "src": "https://images.unsplash.com/photo-1748191461876-ad952a9b9146",
+      "photographer": "Luke Madziwa",
+      "profile": "https://unsplash.com/@m4dluc4"
+    },
+    "sport-hockey": {
+      "photo": "https://unsplash.com/photos/Uhlg5RoAtoI",
+      "src": "https://images.unsplash.com/photo-1541983663620-7571a820610c",
+      "photographer": "Jeffrey F Lin",
+      "profile": "https://unsplash.com/@jeffreyflin"
+    },
+    "sport-football": {
+      "photo": "https://unsplash.com/photos/HPus1oCcOdk",
+      "src": "https://images.unsplash.com/photo-1634114441919-7636abb21cae",
+      "photographer": "Giero Saaski",
+      "profile": "https://unsplash.com/@giero"
+    },
+    "sport-badminton": {
+      "photo": "https://unsplash.com/photos/Wz274",
+      "src": "https://images.unsplash.com/photo-1716155249759-b5f068f74e63",
+      "photographer": "Kristin O Karlsen",
+      "profile": "https://unsplash.com/@kristinokarlsen"
+    },
+    "sport-basketball": {
+      "photo": "https://unsplash.com/photos/No",
+      "src": "https://images.unsplash.com/photo-1603030908455-4a4588c0acdd",
+      "photographer": "Izzy Park",
+      "profile": "https://unsplash.com/@blue_jean"
+    },
+    "sport-equestrian": {
+      "photo": "https://unsplash.com/photos/JvoL95C7Fy0",
+      "src": "https://images.unsplash.com/photo-1779549095373-6d9ac0d781bf",
+      "photographer": "Andrei Zhaboklitskii",
+      "profile": "https://unsplash.com/@bezdelnik"
+    },
+    "sport-climbing": {
+      "photo": "https://unsplash.com/photos/gH5mpNXWI8o",
+      "src": "https://images.unsplash.com/photo-1696105539018-a73a53770934",
+      "photographer": "Nathan Cima",
+      "profile": "https://unsplash.com/@nathan_cima"
+    },
+    "sport-dance": {
+      "photo": "https://unsplash.com/photos/UYG1U5wj3Tk",
+      "src": "https://images.unsplash.com/photo-1555656220-46e30749d330",
+      "photographer": "Nihal Demirci",
+      "profile": "https://unsplash.com/@nihaldemirci"
+    },
+    "sport-yoga": {
+      "photo": "https://unsplash.com/photos/G9H5edUL0T8",
+      "src": "https://images.unsplash.com/photo-1637157216470-d92cd2edb2e8",
+      "photographer": "Junseong Lee",
+      "profile": "https://unsplash.com/@bearsnap"
+    },
+    "blog-1": {
+      "photo": "https://unsplash.com/photos/z_DkoUqgx6M",
+      "src": "https://images.unsplash.com/photo-1533327325824-76bc4e62d560",
+      "photographer": "Clay Banks",
+      "profile": "https://unsplash.com/@claybanks"
+    },
+    "blog-2": {
+      "photo": "https://unsplash.com/photos/WKcS19JBFVU",
+      "src": "https://images.unsplash.com/photo-1604728890708-631078e3eab7",
+      "photographer": "Ken Cheung",
+      "profile": "https://unsplash.com/@kencheungphoto"
+    },
+    "blog-3": {
+      "photo": "https://unsplash.com/photos/iUbsw_VOkbM",
+      "src": "https://images.unsplash.com/photo-1607556671927-78a6605e290b",
+      "photographer": "Earl Wilcox",
+      "profile": "https://unsplash.com/@earl_plannerzone"
+    },
+    "blog-5": {
+      "photo": "https://unsplash.com/photos/GbSCAAsU2Fo",
+      "src": "https://images.unsplash.com/photo-1526142684086-7ebd69df27a5",
+      "photographer": "Stefany Andrade",
+      "profile": "https://unsplash.com/@stefany_andrade"
+    },
+    "blog-4": {
+      "photo": "https://unsplash.com/photos/YT6T0k9qVSs",
+      "src": "https://images.unsplash.com/photo-1774793846892-82f4f75eb847",
+      "photographer": "m c",
+      "profile": "https://unsplash.com/@solaine"
+    },
+    "gallery-cloister": {
+      "photo": "https://unsplash.com/photos/vU7pwY69Cm4",
+      "src": "https://images.unsplash.com/photo-1768573264357-4ca7fa7142c0",
+      "photographer": "T (@tanyabarrow)",
+      "profile": "https://unsplash.com/@tanyabarrow"
+    },
+    "gallery-field": {
+      "photo": "https://unsplash.com/photos/xVV2l6Cb5z0",
+      "src": "https://images.unsplash.com/photo-1780377589974-15402b9ea6ef",
+      "photographer": "Joseph Prospere",
+      "profile": "https://unsplash.com/@josephprospere"
+    },
+    "blog-6": {
+      "photo": "https://unsplash.com/photos/bk11wZwb9F4",
+      "src": "https://images.unsplash.com/photo-1591857177580-dc82b9ac4e1e",
+      "photographer": "Markus Spiske",
+      "profile": "https://unsplash.com/@markusspiske"
+    },
+    "gallery-library": {
+      "photo": "https://unsplash.com/photos/VAUJNfDjjbg",
+      "src": "https://images.unsplash.com/photo-1632245168682-cceb47202dc0",
+      "photographer": "John Angel",
+      "profile": "https://unsplash.com/@johnangelnyc"
+    },
+    "gallery-studio": {
+      "photo": "https://unsplash.com/photos/dmYYIcI",
+      "src": "https://images.unsplash.com/photo-1747311585699-d7a659864cac",
+      "photographer": "Cat Guffin",
+      "profile": "https://unsplash.com/@hiddenbubbles"
+    },
+    "gallery-lab": {
+      "photo": "https://unsplash.com/photos/_9xRHrMOjeg",
+      "src": "https://images.unsplash.com/photo-1602052577122-f73b9710adba",
+      "photographer": "Trnava University",
+      "profile": "https://unsplash.com/@trnavskauni"
+    },
+    "gallery-house": {
+      "photo": "https://unsplash.com/photos/vqM_gTnoNw0",
+      "src": "https://images.unsplash.com/photo-1732443391615-c97287d511cb",
+      "photographer": "Ries Bosch",
+      "profile": "https://unsplash.com/@ries_bosch"
+    },
+    "gallery-garden": {
+      "photo": "https://unsplash.com/photos/L3hyEbDk194",
+      "src": "https://images.unsplash.com/photo-1596086221164-c8a4cac55e27",
+      "photographer": "Aniston Grace",
+      "profile": "https://unsplash.com/@anistongrace"
+    },
+    "gallery-stage": {
+      "photo": "https://unsplash.com/photos/w",
+      "src": "https://images.unsplash.com/photo-1562329265-95a6d7a83440",
+      "photographer": "nooooodles 1337",
+      "profile": "https://unsplash.com/@nooooodles"
+    },
+    "og-default": {
+      "photo": "https://unsplash.com/photos/Tk",
+      "src": "https://images.unsplash.com/photo-1768855394870-29bd92aeec98",
+      "photographer": "Fr. Daniel Ciucci",
+      "profile": "https://unsplash.com/@dannyboy4125"
+    },
+    "herovideo-01": {
+      "photo": "https://unsplash.com/photos/0uY9C6XexZg",
+      "src": "https://images.unsplash.com/photo-1763641699769-cd8ef641d360",
+      "photographer": "Zoshua Colah",
+      "profile": "https://unsplash.com/@zoshuacolah"
+    },
+    "herovideo-02": {
+      "photo": "https://unsplash.com/photos/YzXF_ZxH8MM",
+      "src": "https://images.unsplash.com/photo-1663162551013-8bb8ab151e11",
+      "photographer": "Meredith Spencer",
+      "profile": "https://unsplash.com/@meredithspencer22"
+    },
+    "herovideo-03": {
+      "photo": "https://unsplash.com/photos/tY7hL5Bu7Ic",
+      "src": "https://images.unsplash.com/photo-1648061557966-8e30f972f0be",
+      "photographer": "Pierre Bamin",
+      "profile": "https://unsplash.com/@bamin"
+    },
+    "herovideo-04": {
+      "photo": "https://unsplash.com/photos/XknuBmnjbKg",
+      "src": "https://images.unsplash.com/photo-1581594549595-35f6edc7b762",
+      "photographer": "National Cancer Institute",
+      "profile": "https://unsplash.com/@nci"
+    },
+    "herovideo-05": {
+      "photo": "https://unsplash.com/photos/SlRqqo2wyzo",
+      "src": "https://images.unsplash.com/photo-1722083641591-b75aa201ed9b",
+      "photographer": "Annie Spratt",
+      "profile": "https://unsplash.com/@anniespratt"
+    },
+    "herovideo-06": {
+      "photo": "https://unsplash.com/photos/mE",
+      "src": "https://images.unsplash.com/photo-1627141565871-f446412849d2",
+      "photographer": "Pierre Bamin",
+      "profile": "https://unsplash.com/@bamin"
+    },
+    "herovideo-07": {
+      "photo": "https://unsplash.com/photos/vazZtmYFgFY",
+      "src": "https://images.unsplash.com/photo-1516655543747-2973ac03d580",
+      "photographer": "Chris Barbalis",
+      "profile": "https://unsplash.com/@cbarbalis"
+    },
+    "herovideo-08": {
+      "photo": "https://unsplash.com/photos/woc89ooshIY",
+      "src": "https://images.unsplash.com/photo-1763646508724-2beee34d76e1",
+      "photographer": "Zoshua Colah",
+      "profile": "https://unsplash.com/@zoshuacolah"
+    }
+  }
+}
