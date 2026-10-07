@@ -2,15 +2,13 @@ import { expect, type Page } from "@playwright/test";
 
 /** Pre-sets cookie consent and suppresses the Open House modal so tests aren't interrupted. */
 export async function quietVisitor(page: Page) {
-  await page
-    .context()
-    .addCookies([
-      {
-        name: "ah_consent",
-        value: encodeURIComponent(JSON.stringify({ analytics: false, marketing: false, decidedAt: "e2e" })),
-        url: page.context().pages()[0]?.url().startsWith("http") ? page.url() : "http://localhost",
-      },
-    ]);
+  await page.context().addCookies([
+    {
+      name: "ah_consent",
+      value: encodeURIComponent(JSON.stringify({ analytics: false, marketing: false, decidedAt: "e2e" })),
+      url: page.context().pages()[0]?.url().startsWith("http") ? page.url() : "http://localhost",
+    },
+  ]);
   await page.addInitScript(() => {
     try {
       sessionStorage.setItem("ah_event_modal_seen", "open-morning-october-2026");

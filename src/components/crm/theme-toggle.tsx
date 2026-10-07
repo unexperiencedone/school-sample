@@ -22,7 +22,7 @@ export function ThemeToggle() {
     <button
       type="button"
       onClick={toggle}
-      className="text-muted hover:bg-sunken hover:text-fg rounded-md p-2"
+      className="rounded-md p-2 text-muted hover:bg-sunken hover:text-fg"
       aria-label={dark ? "Switch to light mode" : "Switch to dark mode"}
     >
       {dark ? <Sun className="size-4" /> : <Moon className="size-4" />}

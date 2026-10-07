@@ -62,7 +62,7 @@ export function CommandSearch() {
   return (
     <div className="relative w-full max-w-md">
       <Search
-        className="text-muted pointer-events-none absolute top-1/2 left-2.5 size-4 -translate-y-1/2"
+        className="pointer-events-none absolute top-1/2 left-2.5 size-4 -translate-y-1/2 text-muted"
         aria-hidden
       />
       <input
@@ -96,16 +96,16 @@ export function CommandSearch() {
             input.current?.blur();
           }
         }}
-        className="border-line bg-sunken placeholder:text-muted focus-visible:bg-elevated h-9 w-full rounded-md border pr-12 pl-8 text-sm"
+        className="h-9 w-full rounded-md border border-line bg-sunken pr-12 pl-8 text-sm placeholder:text-muted focus-visible:bg-elevated"
       />
-      <kbd className="border-line text-muted pointer-events-none absolute top-1/2 right-2 hidden -translate-y-1/2 rounded border px-1.5 text-[0.65rem] sm:block">
+      <kbd className="pointer-events-none absolute top-1/2 right-2 hidden -translate-y-1/2 rounded border border-line px-1.5 text-[0.65rem] text-muted sm:block">
         /
       </kbd>
       {open && hits.length > 0 && (
         <ul
           id={listId}
           role="listbox"
-          className="border-line bg-elevated shadow-lift absolute top-11 right-0 left-0 z-50 max-h-96 overflow-y-auto rounded-lg border p-1"
+          className="absolute top-11 right-0 left-0 z-50 max-h-96 overflow-y-auto rounded-lg border border-line bg-elevated p-1 shadow-lift"
         >
           {hits.map((h, i) => (
             <li
@@ -122,9 +122,9 @@ export function CommandSearch() {
             >
               <span className="min-w-0">
                 <span className="block truncate font-medium">{h.label}</span>
-                <span className="text-muted block truncate text-xs">{h.sub}</span>
+                <span className="block truncate text-xs text-muted">{h.sub}</span>
               </span>
-              <span className="bg-sunken text-muted shrink-0 rounded px-1.5 py-0.5 text-[0.65rem] tracking-wide uppercase">
+              <span className="shrink-0 rounded bg-sunken px-1.5 py-0.5 text-[0.65rem] tracking-wide text-muted uppercase">
                 {h.type}
               </span>
             </li>

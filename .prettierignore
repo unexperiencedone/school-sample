@@ -8,3 +8,6 @@ playwright-report
 test-results
 .next-e2e
 .next-prod
+.impeccable
+# Prettier reflows JSX children in MDX, which changes paragraph wrapping in the rendered page
+*.mdx

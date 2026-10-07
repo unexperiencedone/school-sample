@@ -54,23 +54,23 @@ export function AdminSidebar({ items }: { items: AdminNavItem[] }) {
               href={item.href}
               aria-current={isActive(item.href) && !item.children ? "page" : undefined}
               className={cn(
-                "text-muted hover:bg-sunken hover:text-fg flex items-center gap-2.5 rounded-md px-2.5 py-1.5 transition-colors",
-                active && "bg-sunken text-fg font-medium",
+                "flex items-center gap-2.5 rounded-md px-2.5 py-1.5 text-muted transition-colors hover:bg-sunken hover:text-fg",
+                active && "bg-sunken font-medium text-fg",
               )}
             >
               <Icon className={cn("size-4", active && "text-primary")} aria-hidden />
               {item.label}
             </Link>
             {active && item.children && (
-              <ul className="border-line mt-0.5 mb-1.5 ml-[1.15rem] border-l pl-3">
+              <ul className="mt-0.5 mb-1.5 ml-[1.15rem] border-l border-line pl-3">
                 {item.children.map((c) => (
                   <li key={c.href}>
                     <Link
                       href={c.href}
                       aria-current={pathname === c.href ? "page" : undefined}
                       className={cn(
-                        "text-muted hover:text-fg block rounded px-2 py-1 text-[0.8rem]",
-                        pathname === c.href && "text-primary font-medium",
+                        "block rounded px-2 py-1 text-[0.8rem] text-muted hover:text-fg",
+                        pathname === c.href && "font-medium text-primary",
                       )}
                     >
                       {c.label}

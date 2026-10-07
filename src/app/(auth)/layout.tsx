@@ -5,7 +5,7 @@ import { school } from "@/config/school";
 export default function AuthLayout({ children }: { children: React.ReactNode }) {
   return (
     <div className="grid min-h-dvh lg:grid-cols-[1.05fr_1fr]">
-      <aside className="grain bg-damson-900 text-paper relative hidden overflow-hidden p-12 lg:flex lg:flex-col lg:justify-between">
+      <aside className="grain relative hidden overflow-hidden bg-damson-900 p-12 text-paper lg:flex lg:flex-col lg:justify-between">
         <Link href="/" className="relative z-10 w-fit">
           <Logo />
         </Link>
@@ -13,13 +13,13 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
           <p className="font-serif text-4xl leading-tight italic">
             “A school is a promise kept, one ordinary day at a time.”
           </p>
-          <p className="text-damson-300 mt-4 text-sm tracking-wide uppercase">
+          <p className="mt-4 text-sm tracking-wide text-damson-300 uppercase">
             The Aurelia Hall staff handbook
           </p>
         </div>
         <svg
           aria-hidden
-          className="text-damson-700/60 absolute -right-24 -bottom-24 h-[38rem]"
+          className="absolute -right-24 -bottom-24 h-[38rem] text-damson-700/60"
           viewBox="0 0 48 56"
         >
           <path
@@ -35,11 +35,11 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
             strokeWidth="0.4"
           />
         </svg>
-        <p className="text-damson-300 relative z-10 text-xs">{school.name} · sample build</p>
+        <p className="relative z-10 text-xs text-damson-300">{school.name} · sample build</p>
       </aside>
       <main id="main" className="flex items-center justify-center px-5 py-12">
         <div className="w-full max-w-md">
-          <Link href="/" className="text-primary mb-10 block lg:hidden">
+          <Link href="/" className="mb-10 block text-primary lg:hidden">
             <Logo />
           </Link>
           {children}

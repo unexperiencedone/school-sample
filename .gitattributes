@@ -1,0 +1,9 @@
+# Normalise to LF everywhere (Prettier and the docs tests expect it, and Windows checkouts default to CRLF)
+* text=auto eol=lf
+
+*.webp binary
+*.jpg binary
+*.png binary
+*.gz binary
+*.woff2 binary
+*.ico binary

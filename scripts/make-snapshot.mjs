@@ -26,7 +26,10 @@ const dump = execFileSync(
   { encoding: "utf8", maxBuffer: 256 * 1024 * 1024, stdio: ["ignore", "pipe", "ignore"] },
 );
 // psql meta-commands (\restrict) are not SQL
-const sql = dump.split("\n").filter((l) => !l.startsWith("\\")).join("\n");
+const sql = dump
+  .split("\n")
+  .filter((l) => !l.startsWith("\\"))
+  .join("\n");
 mkdirSync("prisma/snapshot", { recursive: true });
 writeFileSync("prisma/snapshot/demo.sql.gz", gzipSync(sql, { level: 9 }));
 console.log(`Wrote prisma/snapshot/demo.sql.gz (${(sql.length / 1e6).toFixed(1)} MB of SQL)`);

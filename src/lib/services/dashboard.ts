@@ -419,15 +419,13 @@ export async function todaysTasks(user: CurrentUser, now: Date): Promise<Task[]>
         })),
     );
     q.push(
-      db.lead
-        .count({ where: { mergedIntoId: null, status: "NEW", assignedToId: null } })
-        .then((n) => ({
-          key: "unassigned",
-          label: "Unassigned new enquiries",
-          count: n,
-          href: "/admin/leads?status=NEW&assignee=none",
-          tone: "info" as const,
-        })),
+      db.lead.count({ where: { mergedIntoId: null, status: "NEW", assignedToId: null } }).then((n) => ({
+        key: "unassigned",
+        label: "Unassigned new enquiries",
+        count: n,
+        href: "/admin/leads?status=NEW&assignee=none",
+        tone: "info" as const,
+      })),
     );
   }
   if (can(role, "tours:read"))
@@ -487,51 +485,43 @@ export async function todaysTasks(user: CurrentUser, now: Date): Promise<Task[]>
     );
   if (can(role, "concessions:approve"))
     q.push(
-      db.studentConcession
-        .count({ where: { status: "REQUESTED" } })
-        .then((n) => ({
-          key: "concessions",
-          label: "Concession requests to decide",
-          count: n,
-          href: "/admin/fees/concessions?status=REQUESTED",
-          tone: "warning" as const,
-        })),
+      db.studentConcession.count({ where: { status: "REQUESTED" } }).then((n) => ({
+        key: "concessions",
+        label: "Concession requests to decide",
+        count: n,
+        href: "/admin/fees/concessions?status=REQUESTED",
+        tone: "warning" as const,
+      })),
     );
   if (can(role, "refunds:approve"))
     q.push(
-      db.refund
-        .count({ where: { status: "REQUESTED" } })
-        .then((n) => ({
-          key: "refunds",
-          label: "Refunds awaiting approval",
-          count: n,
-          href: "/admin/payments/refunds?status=REQUESTED",
-          tone: "warning" as const,
-        })),
+      db.refund.count({ where: { status: "REQUESTED" } }).then((n) => ({
+        key: "refunds",
+        label: "Refunds awaiting approval",
+        count: n,
+        href: "/admin/payments/refunds?status=REQUESTED",
+        tone: "warning" as const,
+      })),
     );
   if (can(role, "payments:record"))
     q.push(
-      db.refund
-        .count({ where: { status: "APPROVED" } })
-        .then((n) => ({
-          key: "refunds-process",
-          label: "Approved refunds to process",
-          count: n,
-          href: "/admin/payments/refunds?status=APPROVED",
-          tone: "info" as const,
-        })),
+      db.refund.count({ where: { status: "APPROVED" } }).then((n) => ({
+        key: "refunds-process",
+        label: "Approved refunds to process",
+        count: n,
+        href: "/admin/payments/refunds?status=APPROVED",
+        tone: "info" as const,
+      })),
     );
   if (can(role, "comms:send"))
     q.push(
-      db.outbox
-        .count({ where: { status: "FAILED" } })
-        .then((n) => ({
-          key: "outbox",
-          label: "Messages that failed to send",
-          count: n,
-          href: "/admin/outbox?status=FAILED",
-          tone: "critical" as const,
-        })),
+      db.outbox.count({ where: { status: "FAILED" } }).then((n) => ({
+        key: "outbox",
+        label: "Messages that failed to send",
+        count: n,
+        href: "/admin/outbox?status=FAILED",
+        tone: "critical" as const,
+      })),
     );
   const tasks = (await Promise.all(q)).filter((t): t is Task => !!t);
   return tasks;

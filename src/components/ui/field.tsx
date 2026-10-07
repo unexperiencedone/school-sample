@@ -27,12 +27,12 @@ export function Field({
       </Label>
       {children}
       {hint && !error && (
-        <p id={`${id}-hint`} className="text-muted mt-1.5 text-xs">
+        <p id={`${id}-hint`} className="mt-1.5 text-xs text-muted">
           {hint}
         </p>
       )}
       {error && (
-        <p id={`${id}-error`} className="text-danger mt-1.5 text-xs font-medium" role="alert">
+        <p id={`${id}-error`} className="mt-1.5 text-xs font-medium text-danger" role="alert">
           {error}
         </p>
       )}
