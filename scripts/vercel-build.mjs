@@ -41,6 +41,37 @@ const run = (cmd, env = {}) => execSync(cmd, { stdio: "inherit", env: { ...proce
 const t0 = Date.now();
 const took = () => `${((Date.now() - t0) / 1000).toFixed(1)}s`;
 
+// A paused Neon compute (scale-to-zero) refuses the first connections while it wakes up. Instead of failing the
+// build and needing a manual redeploy, ping the database and retry once a minute until it answers.
+const WAKE_ATTEMPTS = Number(process.env.DB_WAKE_ATTEMPTS || 6);
+const WAKE_DELAY_MS = Number(process.env.DB_WAKE_DELAY_MS || 60_000);
+const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
+async function waitForDatabase() {
+  for (let attempt = 1; attempt <= WAKE_ATTEMPTS; attempt++) {
+    const probe = new pg.Client({ ...pgConfig(direct), connectionTimeoutMillis: 30_000 });
+    try {
+      await probe.connect();
+      await probe.query("select 1");
+      await probe.end();
+      if (attempt > 1) console.log(`  database is awake (attempt ${attempt})`);
+      return;
+    } catch (err) {
+      await probe.end().catch(() => {});
+      console.warn(`  database not reachable (attempt ${attempt}/${WAKE_ATTEMPTS}): ${err.message}`);
+      if (attempt === WAKE_ATTEMPTS) {
+        console.error("\n✖ Database still unreachable. Check that the Neon project is active, then redeploy.\n");
+        process.exit(1);
+      }
+      console.log(`  waiting ${WAKE_DELAY_MS / 1000}s for the database to wake up…`);
+      await sleep(WAKE_DELAY_MS);
+    }
+  }
+}
+
+console.log("▸ Waiting for the database");
+await waitForDatabase();
+
 console.log("▸ Applying database migrations");
 run("pnpm exec prisma migrate deploy", { DATABASE_URL: direct });
 console.log(`  done (${took()})`);
